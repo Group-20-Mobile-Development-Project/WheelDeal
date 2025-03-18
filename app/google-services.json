@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "176710519355",
+    "project_id": "wheeldeal-20",
+    "storage_bucket": "wheeldeal-20.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:176710519355:android:9b2b25ce26481ba73e6a1e",
+        "android_client_info": {
+          "package_name": "com.example.wheeldeal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDe7_L0TUd5kkidRCnluPV1SYdiw4F17yU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
