@@ -36,7 +36,8 @@ Check out Figma our prototype for the WheelDeal UI/UX:
 [WheelDeal Figma Prototype](https://www.figma.com/proto/Bz43whHLqtkwpfWbqLffUr/Wheel-Deal-UI%2FUX?node-id=0-1&t=6r6wIdqmDql9iLhA-1)
 
 ## Logo
-![wHEEL (3)](https://github.com/user-attachments/assets/bf470ce7-446f-444a-bf4b-ed9c120a5884)
+![Logo](https://github.com/user-attachments/assets/d1483e74-e009-4dc7-9bb2-7efbf80b8a03)
+
 
 
 
