@@ -35,3 +35,19 @@ WheelDeal is a second-hand car marketplace app that connects buyers and sellers.
 Check out Figma our prototype for the WheelDeal UI/UX:
 [WheelDeal Figma Prototype](https://www.figma.com/proto/Bz43whHLqtkwpfWbqLffUr/Wheel-Deal-UI%2FUX?node-id=0-1&t=6r6wIdqmDql9iLhA-1)
 
+## Logo
+![logo](https://github.com/user-attachments/assets/1fa26823-9425-41a0-b62b-bac07eca6442)
+
+
+## Car
+![image](https://github.com/user-attachments/assets/e766e2b5-7bcd-4b71-a39a-18d1b8c83a64)
+
+## Car Icon
+![image](https://github.com/user-attachments/assets/fe7a98c1-33cd-4350-9abe-a6292f10613b)
+
+
+
+
+
+
+
