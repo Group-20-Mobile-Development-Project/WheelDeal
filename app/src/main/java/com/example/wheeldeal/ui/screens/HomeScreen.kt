@@ -1,4 +1,4 @@
-package com.example.wheeldeal.ui.screen
+package com.example.wheeldeal.ui.screens
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -57,29 +57,4 @@ fun HomeScreen() {
             Text(text = "Welcome to WheelDeal Home Screen!")
         }
     }
-}
-
-
-@Composable
-fun HomeScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(text = "Welcome to the Home Screen!")
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(text = "You can now explore more content here.")
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen()
 }

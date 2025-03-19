@@ -1,4 +1,4 @@
-package com.example.wheeldeal.ui.screen
+package com.example.wheeldeal.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
