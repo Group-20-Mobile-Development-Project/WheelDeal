@@ -32,5 +32,5 @@ val AppTypography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp
     )
-    // You can override more text styles as needed
+    // You can override more text styles as needed saghkoasfvbgksfadbhkfabkfbnkfldbnkfdbnkfdbnkfdbnkfbnfkbn
 )
