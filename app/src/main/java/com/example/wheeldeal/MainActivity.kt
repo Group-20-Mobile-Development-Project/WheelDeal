@@ -6,10 +6,14 @@ import androidx.activity.compose.setContent
 import androidx.compose.ui.Modifier
 
 import androidx.activity.enableEdgeToEdge
+
+import com.example.wheeldeal.ui.screens.HomeScreen
+
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import com.example.wheeldeal.ui.screen.LandingPage
+
 import com.example.wheeldeal.ui.theme.WheelDealTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,6 +22,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             WheelDealTheme {
+
+                HomeScreen()
                 // Use Scaffold as the layout for the app
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     // Call the LandingPage composable

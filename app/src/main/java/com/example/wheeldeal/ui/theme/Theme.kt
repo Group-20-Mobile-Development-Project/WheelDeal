@@ -31,7 +31,7 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun WheelDealTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true, // Set to false if you don't need dynamic color
+    dynamicColor: Boolean = false, // Set to false if you don't need dynamic color
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
