@@ -38,6 +38,10 @@ Check out Figma our prototype for the WheelDeal UI/UX:
 ## Logo
 ![Logo](https://github.com/user-attachments/assets/d1483e74-e009-4dc7-9bb2-7efbf80b8a03)
 
+## Car
+![image](https://github.com/user-attachments/assets/e766e2b5-7bcd-4b71-a39a-18d1b8c83a64)
+
+
 
 
 
