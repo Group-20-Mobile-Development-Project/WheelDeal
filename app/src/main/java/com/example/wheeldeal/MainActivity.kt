@@ -3,14 +3,13 @@ package com.example.wheeldeal
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.ui.Modifier
+
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.example.wheeldeal.ui.screen.LandingPage
 import com.example.wheeldeal.ui.theme.WheelDealTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,29 +18,18 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             WheelDealTheme {
+                // Use Scaffold as the layout for the app
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
+                    // Call the LandingPage composable
+                    LandingPage(
+                        modifier = Modifier.padding(innerPadding),
+                        onGetStartedClick = {
+                            // Handle Get Started button click, navigate to next screen
+                            // You can add navigation logic here if needed
+                        }
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    WheelDealTheme {
-        Greeting("Android")
     }
 }
