@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import com.example.wheeldeal.ui.navigation.NavGraph
 import com.example.wheeldeal.ui.screens.HomeScreen
 
 import com.example.wheeldeal.ui.screens.LandingPage
@@ -22,6 +23,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             WheelDealTheme {
+
                 HomeScreen()
                 // Use Scaffold as the layout for the app
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -33,8 +35,11 @@ class MainActivity : ComponentActivity() {
                             // You can add navigation logic here if needed
                         }
                     )
+
                 }
+                NavGraph()
             }
+
         }
     }
 }
