@@ -26,11 +26,12 @@ val AppTypography = Typography(
         fontFamily = Poppins,
         fontWeight = FontWeight.Bold,
         fontSize = 28.sp
+
     ),
     bodyMedium = TextStyle(
         fontFamily = Cabin,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp
     )
-    // You can override more text styles as needed saghkoasfvbgksfadbhkfabkfbnkfldbnkfdbnkfdbnkfdbnkfbnfkbn
+    // You can override more text styles as needed
 )
