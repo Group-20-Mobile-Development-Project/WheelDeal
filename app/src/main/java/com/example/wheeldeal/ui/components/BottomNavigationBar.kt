@@ -31,6 +31,7 @@ data class BottomNavItem(
     val icon: ImageVector
 )
 
+
 @Composable
 fun BottomNavigationBar(
     items: List<BottomNavItem>,
