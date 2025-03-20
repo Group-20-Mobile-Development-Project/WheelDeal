@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 
 import com.example.wheeldeal.ui.components.BottomNavItem
 import com.example.wheeldeal.ui.components.BottomNavigationBar
+import com.example.wheeldeal.ui.components.TopNavigationBar
 
 
 @Preview(showBackground = true)
@@ -37,6 +38,12 @@ fun HomeScreen() {
     )
 
     Scaffold(
+        topBar = {
+            TopNavigationBar(
+                onMessageClick = { /* Handle message click */ },
+                onNotificationClick = { /* Handle notification click */ }
+            )
+        },
         bottomBar = {
             BottomNavigationBar(
                 items = bottomNavItems,
