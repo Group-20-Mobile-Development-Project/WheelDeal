@@ -19,7 +19,8 @@ import com.example.wheeldeal.ui.theme.WhiteColor
 fun TopNavigationBar(
     onMessageClick: () -> Unit,
     onNotificationClick: () -> Unit
-) {
+)
+{
     Row(
         modifier = Modifier
             .fillMaxWidth()
