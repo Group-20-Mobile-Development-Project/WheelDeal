@@ -1,12 +1,9 @@
 package com.example.wheeldeal.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavHost
+import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
 import com.example.wheeldeal.ui.screens.LandingPage
 import com.example.wheeldeal.ui.screens.HomeScreen
 
@@ -29,7 +26,6 @@ fun NavGraph() {
                 navController.navigate(Screen.Home.route)
             })
         }
-
         composable(Screen.Home.route) {
             HomeScreen()
         }
