@@ -1,31 +1,27 @@
 package com.example.wheeldeal.ui.screens
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
-
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-
+import com.example.wheeldeal.R
 import com.example.wheeldeal.ui.components.BottomNavItem
 import com.example.wheeldeal.ui.components.BottomNavigationBar
+import com.example.wheeldeal.ui.components.HeroSection
 import com.example.wheeldeal.ui.components.TopNavigationBar
 
-
 @Preview(showBackground = true)
+
 @Composable
 fun HomeScreen() {
     // Define your five bottom nav items
@@ -49,19 +45,29 @@ fun HomeScreen() {
                 items = bottomNavItems,
                 onItemSelected = { selectedItem ->
                     // Handle navigation action here
-                    // e.g., navigate to different screens
                 }
             )
         }
     ) { innerPadding ->
-        // Main content of your home screen
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.Center
+                .padding(innerPadding)
         ) {
-            Text(text = "Welcome to WheelDeal Home Screen!")
+            // ✅ Added Hero Section
+            HeroSection()
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Other content goes here...
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "Welcome to WheelDeal Home Screen!")
+            }
         }
     }
-    }
+}
