@@ -63,6 +63,8 @@ dependencies {
 
 
     implementation(libs.ui.tooling.preview)
+    implementation(libs.androidx.material.icons.extended)
+
 
     // Firebase dependencies
     implementation(platform(libs.firebase.bom))
