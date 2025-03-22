@@ -72,6 +72,9 @@ dependencies {
     // Google Maps dependency
     implementation(libs.google.maps)
 
+    // Google Auth
+    implementation(libs.play.services.auth)
+
     // Testing
     testImplementation(libs.junit)
 }
