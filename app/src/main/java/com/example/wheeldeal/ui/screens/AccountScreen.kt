@@ -1,4 +1,3 @@
-// ✅ AccountScreen.kt
 package com.example.wheeldeal.ui.screens
 
 import android.widget.Toast
