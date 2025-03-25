@@ -11,7 +11,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             WheelDealTheme {
-                // Start at NavGraph (Landing -> Main -> sub-routes)
                 NavGraph()
             }
         }

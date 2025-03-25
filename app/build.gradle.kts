@@ -70,6 +70,10 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.storage.ktx)
+
+    implementation(libs.coil.compose)
+
 
     // Google Maps dependency
     implementation(libs.google.maps)

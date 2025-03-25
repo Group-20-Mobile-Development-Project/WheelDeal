@@ -204,7 +204,7 @@ fun PreviewCarDetailsScreen() {
         carLocation = "Kathmandu",
         carTransmission = "Auto",
         carEngine = "1496 cc",
-        carDescription = "A well-maintained car in great condition.",
+        carDescription = "2018 Honda Civic EX in excellent condition. Only 65,000 km driven, single owner, and fully serviced with records. Features include sunroof, rear camera, Bluetooth, and Apple CarPlay. Non-smoker vehicle, no accidents. Selling due to upgrade. Great fuel efficiency and smooth drive—perfect for city or highway!",
         carPrice = "20,000"
     )
 }
