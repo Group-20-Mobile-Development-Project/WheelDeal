@@ -43,7 +43,7 @@ fun HeroSection() {
             // Adds a subtle wavy texture
             val path = androidx.compose.ui.graphics.Path().apply {
                 moveTo(size.width * 0.6f, size.height * 0.1f)
-                quadraticBezierTo(
+                quadraticTo(
                     size.width * 0.8f, size.height * 0.4f,
                     size.width * 1.1f, size.height * 0.3f
                 )
