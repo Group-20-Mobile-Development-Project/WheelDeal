@@ -15,14 +15,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.wheeldeal.model.CarListing
 import com.example.wheeldeal.ui.theme.FontIconColor
 import com.example.wheeldeal.ui.theme.PrimaryColor
 import com.example.wheeldeal.ui.theme.WhiteColor
+import com.example.wheeldeal.ui.theme.Poppins
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import com.example.wheeldeal.viewmodel.ListingState
 import com.example.wheeldeal.viewmodel.ListingViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -93,30 +100,38 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(PrimaryColor) // bright yellow
+            .background(PrimaryColor)
             .padding(16.dp)
     ) {
         // (1) Title & Toggle Button
         item {
             Text(
-                "Create A Car Listing",
-                style = MaterialTheme.typography.headlineSmall,
-                color = FontIconColor
+                "Sell a Car",
+                style = TextStyle(
+                    fontFamily = Poppins,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
+                    color = FontIconColor
+                )
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
 
             Button(
                 onClick = { showForm = !showForm },
+                shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = FontIconColor)
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, tint = WhiteColor)
                 Spacer(Modifier.width(8.dp))
                 Text(
                     if (showForm) "Hide Form" else "Create Listing",
-                    color = WhiteColor
+                    color = WhiteColor,
+                    style = TextStyle(fontFamily = Poppins, fontWeight = FontWeight.Bold)
                 )
             }
+
+            Spacer(Modifier.height(16.dp))
         }
 
         // (2) The Form (toggleable)
@@ -216,19 +231,66 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
             }
         }
 
-        // (3) "Your Listings" section
         item {
             Text(
-                "Your Listings",
-                style = MaterialTheme.typography.titleMedium,
-                color = FontIconColor,
-                modifier = Modifier.padding(vertical = 8.dp)
+                text = "Your Listings",
+                style = TextStyle(
+                    fontFamily = Poppins,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = FontIconColor
+                ),
+                modifier = Modifier
+                    .padding(top = 16.dp, bottom = 12.dp)
             )
         }
-
         items((listingState as? ListingState.Success)?.listings?.filter { it.userId == currentUserId } ?: emptyList()) { listing ->
-            ListingCard(listing = listing)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = WhiteColor),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column {
+                    // Image (cropped + consistent height)
+                    AsyncImage(
+                        model = listing.photos.firstOrNull() ?: "https://via.placeholder.com/300x200.png?text=No+Image",
+                        contentDescription = "Car Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    )
+
+                    // Listing details below
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = "${listing.brand} ${listing.model}",
+                            color = FontIconColor,
+                            style = TextStyle(
+                                fontFamily = Poppins,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp
+                            )
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = "Year: ${listing.year} · \$${"%,.2f".format(listing.price)}",
+                            color = FontIconColor,
+                            style = TextStyle(
+                                fontFamily = Poppins,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        )
+                    }
+                }
+            }
         }
+
     }
 }
 
