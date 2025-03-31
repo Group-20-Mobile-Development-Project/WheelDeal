@@ -78,7 +78,7 @@ fun ListingInfo(label: String, value: String) {
 }
 
 fun formatCurrency(price: Double): String {
-    val formatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+    val formatter = NumberFormat.getCurrencyInstance(Locale.US)
     return formatter.format(price)
 }
 
