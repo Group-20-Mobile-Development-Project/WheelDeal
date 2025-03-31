@@ -78,9 +78,10 @@ fun ListingInfo(label: String, value: String) {
 }
 
 fun formatCurrency(price: Double): String {
-    val formatter = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val formatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
     return formatter.format(price)
 }
+
 
 @Composable
 fun ListingCard(listing: CarListing) {
