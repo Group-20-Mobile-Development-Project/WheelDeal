@@ -37,11 +37,11 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
     var showForm by remember { mutableStateOf(false) }
 
     // Form fields (start blank)
-    var condition by remember { mutableStateOf("") }
-    var year by remember { mutableStateOf("") }
     var brand by remember { mutableStateOf("") }
     var model by remember { mutableStateOf("") }
+    var year by remember { mutableStateOf("") }
     var transmission by remember { mutableStateOf("") }
+    var condition by remember { mutableStateOf("") }
     var color by remember { mutableStateOf("") }
     var engineCapacity by remember { mutableStateOf("") }
     var fuelType by remember { mutableStateOf("") }
@@ -68,11 +68,11 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
 
     // Reset the form
     val resetForm = {
-        condition = ""
-        year = ""
         brand = ""
         model = ""
+        year = ""
         transmission = ""
+        condition = ""
         color = ""
         engineCapacity = ""
         fuelType = ""
@@ -131,14 +131,14 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                     colors = CardDefaults.cardColors(containerColor = WhiteColor)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        // Condition
-                        DropdownField("Condition", conditionOptions, condition) { condition = it }
-                        // Year
-                        DropdownField("Year", years, year) { year = it }
                         // Brand
                         InputField("Brand", brand) { brand = it }
                         // Model
                         InputField("Model", model) { model = it }
+                        // Year
+                        DropdownField("Year", years, year) { year = it }
+                        // Condition
+                        DropdownField("Condition", conditionOptions, condition) { condition = it }
                         // Transmission
                         DropdownField("Transmission", transmissions, transmission) { transmission = it }
                         // Color
@@ -180,10 +180,10 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                             onClick = {
                                 val listing = CarListing(
                                     userId = currentUserId,
-                                    condition = condition,
-                                    year = year.toIntOrNull() ?: 0,
                                     brand = brand,
                                     model = model,
+                                    year = year.toIntOrNull() ?: 0,
+                                    condition = condition,
                                     transmission = transmission,
                                     color = color,
                                     engineCapacity = engineCapacity.toIntOrNull() ?: 0,
