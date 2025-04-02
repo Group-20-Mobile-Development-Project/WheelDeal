@@ -40,6 +40,8 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
     val listingState by viewModel.listingState.collectAsState()
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
 
+    var attemptedSubmit by remember { mutableStateOf(false) }
+
     // Toggle for showing/hiding the form
     var showForm by remember { mutableStateOf(false) }
 
@@ -94,6 +96,7 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
         negotiable = false
         photoUrl = ""
         description = ""
+        attemptedSubmit = false
     }
 
     // Main layout with lazy column
@@ -193,6 +196,30 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                         // Submit
                         Button(
                             onClick = {
+                                if (
+                                    brand.isBlank() ||
+                                    model.isBlank() ||
+                                    year.isBlank() ||
+                                    condition.isBlank() ||
+                                    transmission.isBlank() ||
+                                    price.isBlank() ||
+                                    color.isBlank() ||
+                                    engineCapacity.isBlank() ||
+                                    fuelType.isBlank() ||
+                                    avgMileage.isBlank() ||
+                                    odometer.isBlank() ||
+                                    accidents.isBlank() ||
+                                    seats.isBlank() ||
+                                    lastInspection.isBlank() ||
+                                    ownership.isBlank() ||
+                                    location.isBlank() ||
+                                    price.isBlank() ||
+                                    photoUrl.isBlank() ||
+                                    description.isBlank()
+                                ) {
+                                    Toast.makeText(context, "Please fill all required fields", Toast.LENGTH_SHORT).show()
+                                    return@Button
+                                }
                                 val listing = CarListing(
                                     userId = currentUserId,
                                     brand = brand,
@@ -301,6 +328,7 @@ fun InputField(
     value: String,
     keyboardType: KeyboardType = KeyboardType.Text,
     singleLine: Boolean = true,
+    isError: Boolean = false,
     onValueChange: (String) -> Unit
 ) {
     OutlinedTextField(
@@ -309,6 +337,7 @@ fun InputField(
         label = { Text(label, color = FontIconColor) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = keyboardType),
         singleLine = singleLine,
+        isError = isError,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
