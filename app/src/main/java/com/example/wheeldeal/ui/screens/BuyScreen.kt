@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,11 +16,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import com.example.wheeldeal.model.CarListing
 import com.example.wheeldeal.viewmodel.ListingState
 import com.example.wheeldeal.viewmodel.ListingViewModel
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
@@ -65,6 +66,7 @@ fun BuyScreen(viewModel: ListingViewModel = viewModel()) {
         }
     }
 }
+
 @Composable
 fun ListingInfo(label: String, value: String) {
     Row(modifier = Modifier.padding(vertical = 2.dp)) {
@@ -82,9 +84,31 @@ fun formatCurrency(price: Double): String {
     return formatter.format(price)
 }
 
+fun formatTimestamp(timestamp: Timestamp?): String {
+    if (timestamp == null) return ""
+    val sdf = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
+    return sdf.format(timestamp.toDate())
+}
+
+suspend fun fetchUserFullName(userId: String): String {
+    return try {
+        val doc = FirebaseFirestore.getInstance().collection("users").document(userId).get().await()
+        val first = doc.getString("firstName") ?: ""
+        val last = doc.getString("lastName") ?: ""
+        "$first $last"
+    } catch (e: Exception) {
+        "Unknown"
+    }
+}
 
 @Composable
 fun ListingCard(listing: CarListing) {
+    var posterName by remember { mutableStateOf("") }
+
+    LaunchedEffect(listing.userId) {
+        posterName = fetchUserFullName(listing.userId)
+    }
+
     Card(
         modifier = Modifier
             .padding(vertical = 8.dp)
@@ -120,6 +144,12 @@ fun ListingCard(listing: CarListing) {
                     text = "${listing.brand} ${listing.model} (${listing.year})",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = Color.Black
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Posted by $posterName · ${formatTimestamp(listing.createdAt)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.DarkGray
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 
