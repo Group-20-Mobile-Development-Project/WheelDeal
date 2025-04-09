@@ -11,6 +11,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,9 +36,17 @@ import com.example.wheeldeal.viewmodel.ListingState
 import com.example.wheeldeal.viewmodel.ListingViewModel
 import com.google.firebase.auth.FirebaseAuth
 
+//  import android.net.Uri
+//  import androidx.activity.compose.rememberLauncherForActivityResult
+//  import androidx.activity.result.contract.ActivityResultContracts
+
+
+
+
 @Composable
 fun SellScreen(viewModel: ListingViewModel = viewModel()) {
     val context = LocalContext.current
+
     val listingState by viewModel.listingState.collectAsState()
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
 
@@ -44,6 +54,9 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
 
     // Toggle for showing/hiding the form
     var showForm by remember { mutableStateOf(false) }
+
+    var editMode by remember { mutableStateOf(false) }
+    var editingListingId by remember { mutableStateOf("") }
 
     // Form fields (start blank)
     var brand by remember { mutableStateOf("") }
@@ -98,6 +111,71 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
         description = ""
         attemptedSubmit = false
     }
+    // 🔧 handleSubmit used correctly now
+    val handleSubmit = let@{
+        attemptedSubmit = true
+        if (
+            brand.isBlank() || model.isBlank() || year.isBlank() || condition.isBlank() ||
+            transmission.isBlank() || price.isBlank() || color.isBlank() || engineCapacity.isBlank() ||
+            fuelType.isBlank() || avgMileage.isBlank() || odometer.isBlank() || accidents.isBlank() ||
+            seats.isBlank() || lastInspection.isBlank() || ownership.isBlank() || location.isBlank() ||
+            photoUrl.isBlank() || description.isBlank()
+        ) {
+            Toast.makeText(context, "Please fill all required fields", Toast.LENGTH_SHORT).show()
+            return@let
+        }
+        val listing = CarListing(
+            id = if (editMode) editingListingId else "",
+            userId = currentUserId,
+            brand = brand,
+            model = model,
+            year = year.toIntOrNull() ?: 0,
+            condition = condition,
+            transmission = transmission,
+            color = color,
+            engineCapacity = engineCapacity.toIntOrNull() ?: 0,
+            fuelType = fuelType,
+            avgMileage = avgMileage.toIntOrNull() ?: 0,
+            odometer = odometer.toIntOrNull() ?: 0,
+            accidents = accidents.toIntOrNull() ?: 0,
+            seats = seats.toIntOrNull() ?: 0,
+            lastInspection = lastInspection,
+            ownership = ownership,
+            location = location,
+            price = price.toDoubleOrNull() ?: 0.0,
+            negotiable = negotiable,
+            photos = if (photoUrl.isNotBlank()) listOf(photoUrl) else emptyList(),
+            description = description
+        )
+
+        if (editMode) {
+            viewModel.updateListing(listing) { success ->
+                Toast.makeText(context, if (success) "Listing updated!" else "Update failed", Toast.LENGTH_SHORT).show()
+                if (success) resetForm()
+            }
+        } else {
+            viewModel.addListing(listing) { success ->
+                Toast.makeText(context, if (success) "Listing uploaded!" else "Failed", Toast.LENGTH_SHORT).show()
+                if (success) resetForm()
+            }
+        }
+    }
+    /*val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            val storageRepo = StorageRepository()
+            CoroutineScope(Dispatchers.IO).launch {
+                val result = storageRepo.uploadImage(uri)
+                withContext(Dispatchers.Main) {
+                    result.onSuccess { url ->
+                        photoUrl = url
+                        Toast.makeText(context, "Image uploaded", Toast.LENGTH_SHORT).show()
+                    }.onFailure {
+                        Toast.makeText(context, "Upload failed", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }*/
 
     // Main layout with lazy column
     LazyColumn(
@@ -188,67 +266,26 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                         }
                         // Photo
                         InputField("Photo URL", photoUrl) { photoUrl = it }
+                        /*
+                        Button(
+                        onClick = { launcher.launch("image/*") },
+                        colors = ButtonDefaults.buttonColors(containerColor = FontIconColor)
+                            ) {
+                             Text("Upload Image", color = WhiteColor)
+                            }
+                            Text("Photo URL: $photoUrl", style = MaterialTheme.typography.bodySmall, color = FontIconColor)*/
+
+                         */
                         // Description
                         InputField("Description", description, singleLine = false) { description = it }
 
                         Spacer(Modifier.height(12.dp))
 
                         // Submit
-                        Button(
-                            onClick = {
-                                if (
-                                    brand.isBlank() ||
-                                    model.isBlank() ||
-                                    year.isBlank() ||
-                                    condition.isBlank() ||
-                                    transmission.isBlank() ||
-                                    price.isBlank() ||
-                                    color.isBlank() ||
-                                    engineCapacity.isBlank() ||
-                                    fuelType.isBlank() ||
-                                    avgMileage.isBlank() ||
-                                    odometer.isBlank() ||
-                                    accidents.isBlank() ||
-                                    seats.isBlank() ||
-                                    lastInspection.isBlank() ||
-                                    ownership.isBlank() ||
-                                    location.isBlank() ||
-                                    price.isBlank() ||
-                                    photoUrl.isBlank() ||
-                                    description.isBlank()
-                                ) {
-                                    Toast.makeText(context, "Please fill all required fields", Toast.LENGTH_SHORT).show()
-                                    return@Button
-                                }
-                                val listing = CarListing(
-                                    userId = currentUserId,
-                                    brand = brand,
-                                    model = model,
-                                    year = year.toIntOrNull() ?: 0,
-                                    condition = condition,
-                                    transmission = transmission,
-                                    color = color,
-                                    engineCapacity = engineCapacity.toIntOrNull() ?: 0,
-                                    fuelType = fuelType,
-                                    avgMileage = avgMileage.toIntOrNull() ?: 0,
-                                    odometer = odometer.toIntOrNull() ?: 0,
-                                    accidents = accidents.toIntOrNull() ?: 0,
-                                    seats = seats.toIntOrNull() ?: 0,
-                                    lastInspection = lastInspection,
-                                    ownership = ownership,
-                                    location = location,
-                                    price = price.toDoubleOrNull() ?: 0.0,
-                                    negotiable = negotiable,
-                                    photos = if (photoUrl.isNotBlank()) listOf(photoUrl) else emptyList(),
-                                    description = description
-                                )
-                                viewModel.addListing(listing) { success ->
-                                    Toast.makeText(context, if (success) "Listing uploaded!" else "Failed", Toast.LENGTH_SHORT).show()
-                                    if (success) resetForm()
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = FontIconColor)
+                        Button (
+                            onClick = handleSubmit,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = FontIconColor)
                         ) {
                             Text("Submit", color = WhiteColor)
                         }
@@ -313,6 +350,44 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                                 fontSize = 16.sp
                             )
                         )
+
+                        Row(Modifier.padding(top = 8.dp)) {
+                            IconButton(onClick = {
+                                // Fill form with listing data for edit
+                                brand = listing.brand
+                                model = listing.model
+                                year = listing.year.toString()
+                                condition = listing.condition
+                                transmission = listing.transmission
+                                color = listing.color
+                                engineCapacity = listing.engineCapacity.toString()
+                                fuelType = listing.fuelType
+                                avgMileage = listing.avgMileage.toString()
+                                odometer = listing.odometer.toString()
+                                accidents = listing.accidents.toString()
+                                seats = listing.seats.toString()
+                                lastInspection = listing.lastInspection
+                                ownership = listing.ownership
+                                location = listing.location
+                                price = listing.price.toString()
+                                negotiable = listing.negotiable
+                                photoUrl = listing.photos.firstOrNull() ?: ""
+                                description = listing.description
+                                editingListingId = listing.id
+                                showForm = true
+                                editMode = true
+                            }) {
+                                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = FontIconColor)
+                            }
+
+                            IconButton(onClick = {
+                                viewModel.deleteListing(listing.id) { success ->
+                                    Toast.makeText(context, if (success) "Deleted" else "Failed", Toast.LENGTH_SHORT).show()
+                                }
+                            }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                            }
+                        }
                     }
                 }
             }

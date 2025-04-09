@@ -72,6 +72,9 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.storage.ktx)
 
+    implementation(libs.firebase.appcheck.debug)
+
+
     implementation(libs.coil.compose)
 
 
