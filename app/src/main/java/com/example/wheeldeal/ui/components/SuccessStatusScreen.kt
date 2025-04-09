@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
@@ -21,7 +22,8 @@ import androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun SuccessStatusScreen(
     title: String,
-    onMenuClick: () -> Unit = {}
+    onMenuClick: () -> Unit = {},
+    onCloseClick: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
@@ -46,7 +48,7 @@ fun SuccessStatusScreen(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Success Checkmark",
-                    tint = Color(0xFFFFE07D), // Yellow checkmark inside dark blue
+                    tint = Color(0xFFFFE07D), // Yellow checkmark
                     modifier = Modifier.size(72.dp)
                 )
             }
@@ -79,7 +81,21 @@ fun SuccessStatusScreen(
             )
         }
 
-        // Menu icon (top-right)
+        // Top-left X (close) icon
+        IconButton(
+            onClick = onCloseClick,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(25.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Close Icon",
+                tint = Color.Black
+            )
+        }
+
+        // Top-right Menu icon (optional)
         IconButton(
             onClick = onMenuClick,
             modifier = Modifier
@@ -98,5 +114,9 @@ fun SuccessStatusScreen(
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun PreviewSuccessStatusScreen() {
-    SuccessStatusScreen(title = "Listed")
+    SuccessStatusScreen(
+        title = "Listed",
+        onCloseClick = {}, // Simulate popBackStack or dismiss here
+        onMenuClick = {}
+    )
 }
