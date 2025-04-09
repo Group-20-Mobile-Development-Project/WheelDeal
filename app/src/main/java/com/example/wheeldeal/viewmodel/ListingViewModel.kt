@@ -43,5 +43,22 @@ class ListingViewModel(
         }
     }
 
+    fun deleteListing(listingId: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val result = repository.deleteListing(listingId)
+            onResult(result.isSuccess)
+            fetchListings()
+        }
+    }
+
+    fun updateListing(listing: CarListing, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val result = repository.updateListing(listing)
+            onResult(result.isSuccess)
+            fetchListings()
+        }
+    }
+
+
 
 }
