@@ -2,6 +2,7 @@ package com.example.wheeldeal.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -10,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -24,7 +26,7 @@ fun SuccessStatusScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFE07D)) // Yellow background
+            .background(Color(0xFFFFE07D)) // Light Yellow background
     ) {
         Column(
             modifier = Modifier
@@ -33,17 +35,25 @@ fun SuccessStatusScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Checkmark icon
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = "Success Checkmark",
-                tint = Color(0xFF0A284F),
-                modifier = Modifier.size(120.dp)
-            )
+            // Circle with check icon
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(140.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF0A284F)) // Dark Blue
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Success Checkmark",
+                    tint = Color(0xFFFFE07D), // Yellow checkmark inside dark blue
+                    modifier = Modifier.size(72.dp)
+                )
+            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // Title (e.g., Listed / Deleted / Updated)
+            // Dynamic status text
             Text(
                 text = title,
                 fontSize = 28.sp,
@@ -58,9 +68,9 @@ fun SuccessStatusScreen(
                 color = Color(0xFF0A284F)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // Car icon
+            // Car icon at bottom
             Icon(
                 imageVector = Icons.Default.DirectionsCar,
                 contentDescription = "Car Icon",
@@ -69,7 +79,7 @@ fun SuccessStatusScreen(
             )
         }
 
-        // Top-right menu icon
+        // Menu icon (top-right)
         IconButton(
             onClick = onMenuClick,
             modifier = Modifier
