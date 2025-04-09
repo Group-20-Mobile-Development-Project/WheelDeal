@@ -15,6 +15,7 @@ class ListingRepository {
         return try {
             val docRef = listingsCollection.document()
             val listingWithMeta = listing.copy(
+                id = docRef.id,
                 userId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty(),
                 createdAt = Timestamp.now()
             )
@@ -35,5 +36,25 @@ class ListingRepository {
         }
     }
 
-    // You can add update/delete methods later when needed
+    // update/delete
+    suspend fun deleteListing(listingId: String): Result<Void?> {
+        return try {
+            FirebaseFirestore.getInstance().collection("listings")
+                .document(listingId).delete().await()
+            Result.success(null)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateListing(listing: CarListing): Result<Void?> {
+        return try {
+            FirebaseFirestore.getInstance().collection("listings")
+                .document(listing.id).set(listing).await()
+            Result.success(null)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }
