@@ -36,9 +36,17 @@ import com.example.wheeldeal.viewmodel.ListingState
 import com.example.wheeldeal.viewmodel.ListingViewModel
 import com.google.firebase.auth.FirebaseAuth
 
+//  import android.net.Uri
+//  import androidx.activity.compose.rememberLauncherForActivityResult
+//  import androidx.activity.result.contract.ActivityResultContracts
+
+
+
+
 @Composable
 fun SellScreen(viewModel: ListingViewModel = viewModel()) {
     val context = LocalContext.current
+
     val listingState by viewModel.listingState.collectAsState()
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
 
@@ -152,6 +160,22 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
             }
         }
     }
+    /*val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            val storageRepo = StorageRepository()
+            CoroutineScope(Dispatchers.IO).launch {
+                val result = storageRepo.uploadImage(uri)
+                withContext(Dispatchers.Main) {
+                    result.onSuccess { url ->
+                        photoUrl = url
+                        Toast.makeText(context, "Image uploaded", Toast.LENGTH_SHORT).show()
+                    }.onFailure {
+                        Toast.makeText(context, "Upload failed", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }*/
 
     // Main layout with lazy column
     LazyColumn(
@@ -242,6 +266,16 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                         }
                         // Photo
                         InputField("Photo URL", photoUrl) { photoUrl = it }
+                        /*
+                        Button(
+                        onClick = { launcher.launch("image/*") },
+                        colors = ButtonDefaults.buttonColors(containerColor = FontIconColor)
+                            ) {
+                             Text("Upload Image", color = WhiteColor)
+                            }
+                            Text("Photo URL: $photoUrl", style = MaterialTheme.typography.bodySmall, color = FontIconColor)*/
+
+                         */
                         // Description
                         InputField("Description", description, singleLine = false) { description = it }
 
