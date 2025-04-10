@@ -1,6 +1,5 @@
 package com.example.wheeldeal.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -18,13 +17,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.wheeldeal.R
+import com.example.wheeldeal.ui.components.BottomNavigationBar
+import com.example.wheeldeal.ui.components.TopNavigationBar
 import com.example.wheeldeal.ui.theme.FontIconColor
 import com.example.wheeldeal.ui.theme.Poppins
 import com.example.wheeldeal.ui.theme.PrimaryColor
@@ -32,9 +31,26 @@ import com.example.wheeldeal.ui.theme.WhiteColor
 
 @Preview
 @Composable
-fun CarOwnerDetailsScreen() {
+fun CarOwnerDetailsScreenWrapper() {
+    Scaffold(
+        topBar = {
+            TopNavigationBar(
+                onMessageClick = {},
+                onNotificationClick = {}
+            )
+        },
+        bottomBar = {
+            BottomNavigationBar()
+        }
+    ) { innerPadding ->
+        CarOwnerDetailsScreenContent(Modifier.padding(innerPadding))
+    }
+}
+
+@Composable
+fun CarOwnerDetailsScreenContent(modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
@@ -43,7 +59,6 @@ fun CarOwnerDetailsScreen() {
             )
             .padding(16.dp)
     ) {
-        // Car Image Card
         Card(
             shape = RoundedCornerShape(24.dp),
             modifier = Modifier
@@ -99,7 +114,6 @@ fun CarOwnerDetailsScreen() {
             }
         }
 
-        // Owner section
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -138,20 +152,18 @@ fun CarOwnerDetailsScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Info fields
         InfoField(label = "E Mail ID", value = "owner@example.com")
         InfoField(label = "Number", value = "+44 7123 456789")
         InfoField(label = "Location", value = "Kathmandu")
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Button(
-                onClick = { /* Chat logic */ },
+                onClick = { /* TODO: Implement Chat */ },
                 modifier = Modifier
                     .weight(1f)
                     .height(56.dp),
@@ -166,7 +178,7 @@ fun CarOwnerDetailsScreen() {
             Spacer(modifier = Modifier.width(16.dp))
 
             OutlinedButton(
-                onClick = { /* Call logic */ },
+                onClick = { /* TODO: Implement Call */ },
                 modifier = Modifier
                     .weight(1f)
                     .height(56.dp),
