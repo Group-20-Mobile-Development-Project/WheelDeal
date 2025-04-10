@@ -39,9 +39,6 @@ fun CarOwnerDetailsScreenWrapper() {
                 onNotificationClick = {}
             )
         },
-        bottomBar = {
-            BottomNavigationBar()
-        }
     ) { innerPadding ->
         CarOwnerDetailsScreenContent(Modifier.padding(innerPadding))
     }
