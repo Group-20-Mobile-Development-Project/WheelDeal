@@ -151,7 +151,7 @@ fun ListingCard(listing: CarListing) {
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.DarkGray
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 ListingInfo(label = "Condition", value = listing.condition)
                 ListingInfo(label = "Price", value = formatCurrency(listing.price))
