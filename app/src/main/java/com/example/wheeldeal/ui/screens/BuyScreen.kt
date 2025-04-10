@@ -1,10 +1,13 @@
 package com.example.wheeldeal.ui.screens
 
-import androidx.compose.foundation.Image
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,8 +20,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.wheeldeal.model.CarListing
+import com.example.wheeldeal.viewmodel.FavoritesViewModel
 import com.example.wheeldeal.viewmodel.ListingState
 import com.example.wheeldeal.viewmodel.ListingViewModel
+import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -27,8 +32,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun BuyScreen(viewModel: ListingViewModel = viewModel()) {
+fun BuyScreen(
+    viewModel: ListingViewModel = viewModel(),
+    favoritesViewModel: FavoritesViewModel = viewModel()
+) {
+    val context = LocalContext.current
     val state by viewModel.listingState.collectAsState()
+    val favoriteIds by favoritesViewModel.favoriteIds.collectAsState()
 
     Box(
         modifier = Modifier
@@ -58,7 +68,18 @@ fun BuyScreen(viewModel: ListingViewModel = viewModel()) {
                 } else {
                     LazyColumn {
                         items(listings) { listing ->
-                            ListingCard(listing = listing)
+                            ListingCard(
+                                listing = listing,
+                                isFavorite = favoriteIds.contains(listing.id),
+                                onToggleFavorite = {
+                                    favoritesViewModel.toggleFavorite(listing.id)
+                                    Toast.makeText(
+                                        context,
+                                        if (favoriteIds.contains(listing.id)) "Removed from favorites" else "Added to favorites",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            )
                         }
                     }
                 }
@@ -102,7 +123,11 @@ suspend fun fetchUserFullName(userId: String): String {
 }
 
 @Composable
-fun ListingCard(listing: CarListing) {
+fun ListingCard(
+    listing: CarListing,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit
+) {
     var posterName by remember { mutableStateOf("") }
 
     LaunchedEffect(listing.userId) {
@@ -140,18 +165,28 @@ fun ListingCard(listing: CarListing) {
             }
 
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "${listing.brand} ${listing.model} (${listing.year})",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color.Black
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "${listing.brand} ${listing.model} (${listing.year})",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = Color.Black,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = onToggleFavorite) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = "Favorite Toggle",
+                            tint = if (isFavorite) Color.Red else Color.Gray
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Posted by $posterName · ${formatTimestamp(listing.createdAt)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.DarkGray
                 )
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 ListingInfo(label = "Condition", value = listing.condition)
                 ListingInfo(label = "Price", value = formatCurrency(listing.price))
@@ -178,3 +213,4 @@ fun ListingCard(listing: CarListing) {
         }
     }
 }
+
