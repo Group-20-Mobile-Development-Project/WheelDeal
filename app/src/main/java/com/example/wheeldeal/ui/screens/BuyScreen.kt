@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -15,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -23,7 +25,6 @@ import com.example.wheeldeal.model.CarListing
 import com.example.wheeldeal.viewmodel.FavoritesViewModel
 import com.example.wheeldeal.viewmodel.ListingState
 import com.example.wheeldeal.viewmodel.ListingViewModel
-import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -40,38 +41,66 @@ fun BuyScreen(
     val state by viewModel.listingState.collectAsState()
     val favoriteIds by favoritesViewModel.favoriteIds.collectAsState()
 
-    var searchQuery by remember { mutableStateOf("") }
+    // Filter states
+    var showFilters by remember { mutableStateOf(false) }
+    var selectedBrand by remember { mutableStateOf("") }
+    var selectedTransmission by remember { mutableStateOf("") }
+    var selectedFuelType by remember { mutableStateOf("") }
+    var selectedYear by remember { mutableStateOf("") }
+    var budget by remember { mutableFloatStateOf(50000f) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f))
             .padding(16.dp)
     ) {
-        // 🔍 Search Field
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            label = { Text("Search cars...") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
-            singleLine = true,
-            shape = MaterialTheme.shapes.medium
-        )
+        // Toggle filter section
+        Button(
+            onClick = { showFilters = !showFilters },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(if (showFilters) "Hide Filters" else "Show Filters")
+        }
 
-        // 🔄 Listing content
+        Spacer(modifier = Modifier.height(12.dp))
+
+        if (showFilters) {
+            FilterDropdown("Brand", listOf("Audi", "BMW", "Tesla", "Toyota"), selectedBrand) {
+                selectedBrand = it
+            }
+            FilterDropdown("Transmission", listOf("Auto", "Manual"), selectedTransmission) {
+                selectedTransmission = it
+            }
+            FilterDropdown("Fuel Type", listOf("Petrol", "Diesel", "Electric", "Hybrid"), selectedFuelType) {
+                selectedFuelType = it
+            }
+            FilterDropdown("Year", (2000..2025).map { it.toString() }, selectedYear) {
+                selectedYear = it
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Budget: $${budget.toInt()}")
+            Slider(
+                value = budget,
+                onValueChange = { budget = it },
+                valueRange = 5000f..100000f,
+                steps = 10
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
         when (state) {
-            is ListingState.Loading -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
+            is ListingState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
 
             is ListingState.Error -> {
                 val message = (state as ListingState.Error).message
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Error loading listings: $message", color = Color.Red)
+                    Text("Error: $message", color = Color.Red)
                 }
             }
 
@@ -79,12 +108,11 @@ fun BuyScreen(
                 val listings = (state as ListingState.Success).listings
 
                 val filtered = listings.filter {
-                    val query = searchQuery.trim().lowercase()
-                    query.isBlank() || listOf(
-                        it.brand,
-                        it.model,
-                        it.location
-                    ).any { field -> field.lowercase().contains(query) }
+                    (selectedBrand.isBlank() || it.brand == selectedBrand) &&
+                            (selectedTransmission.isBlank() || it.transmission == selectedTransmission) &&
+                            (selectedFuelType.isBlank() || it.fuelType == selectedFuelType) &&
+                            (selectedYear.isBlank() || it.year.toString() == selectedYear)
+
                 }
 
                 if (filtered.isEmpty()) {
@@ -114,37 +142,51 @@ fun BuyScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListingInfo(label: String, value: String) {
-    Row(modifier = Modifier.padding(vertical = 2.dp)) {
-        Text(
-            text = "$label: ",
-            fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF333333)
+fun FilterDropdown(
+    label: String,
+    options: List<String>,
+    selectedOption: String,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+        OutlinedTextField(
+            value = selectedOption,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor()
+                .padding(vertical = 4.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedBorderColor = Color.Gray,
+                focusedBorderColor = MaterialTheme.colorScheme.primary
+            )
         )
-        Text(text = value)
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onOptionSelected(option)
+                        expanded = false
+                    }
+                )
+            }
+        }
     }
 }
 
-fun formatCurrency(price: Double): String {
-    val formatter = NumberFormat.getCurrencyInstance(Locale.US)
-    return formatter.format(price)
-}
-
-fun formatTimestamp(timestamp: Timestamp?): String {
-    if (timestamp == null) return ""
-    val sdf = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
-    return sdf.format(timestamp.toDate())
-}
-
-suspend fun fetchUserFullName(userId: String): String {
-    return try {
-        val doc = FirebaseFirestore.getInstance().collection("users").document(userId).get().await()
-        val first = doc.getString("firstName") ?: ""
-        val last = doc.getString("lastName") ?: ""
-        "$first $last"
-    } catch (e: Exception) {
-        "Unknown"
+@Composable
+fun ListingInfo(label: String, value: String) {
+    Row(modifier = Modifier.padding(vertical = 2.dp)) {
+        Text("$label: ", fontWeight = FontWeight.SemiBold, color = Color(0xFF333333))
+        Text(value)
     }
 }
 
@@ -214,20 +256,20 @@ fun ListingCard(
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 
-                ListingInfo(label = "Condition", value = listing.condition)
-                ListingInfo(label = "Price", value = formatCurrency(listing.price))
-                ListingInfo(label = "Negotiable", value = if (listing.negotiable) "Yes" else "No")
-                ListingInfo(label = "Location", value = listing.location)
-                ListingInfo(label = "Mileage", value = "${listing.avgMileage} km/l")
-                ListingInfo(label = "Odometer", value = "${listing.odometer} km")
-                ListingInfo(label = "Color", value = listing.color)
-                ListingInfo(label = "Transmission", value = listing.transmission)
-                ListingInfo(label = "Engine", value = "${listing.engineCapacity} cc")
-                ListingInfo(label = "Fuel Type", value = listing.fuelType)
-                ListingInfo(label = "Seats", value = listing.seats.toString())
-                ListingInfo(label = "Accidents", value = listing.accidents.toString())
-                ListingInfo(label = "Last Inspection", value = listing.lastInspection)
-                ListingInfo(label = "Ownership", value = listing.ownership)
+                ListingInfo("Condition", listing.condition)
+                ListingInfo("Price", formatCurrency(listing.price))
+                ListingInfo("Negotiable", if (listing.negotiable) "Yes" else "No")
+                ListingInfo("Location", listing.location)
+                ListingInfo("Mileage", "${listing.avgMileage} km/l")
+                ListingInfo("Odometer", "${listing.odometer} km")
+                ListingInfo("Color", listing.color)
+                ListingInfo("Transmission", listing.transmission)
+                ListingInfo("Engine", "${listing.engineCapacity} cc")
+                ListingInfo("Fuel Type", listing.fuelType)
+                ListingInfo("Seats", listing.seats.toString())
+                ListingInfo("Accidents", listing.accidents.toString())
+                ListingInfo("Last Inspection", listing.lastInspection)
+                ListingInfo("Ownership", listing.ownership)
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -240,3 +282,24 @@ fun ListingCard(
     }
 }
 
+fun formatCurrency(price: Double): String {
+    val formatter = NumberFormat.getCurrencyInstance(Locale.US)
+    return formatter.format(price)
+}
+
+fun formatTimestamp(timestamp: Timestamp?): String {
+    if (timestamp == null) return ""
+    val sdf = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
+    return sdf.format(timestamp.toDate())
+}
+
+suspend fun fetchUserFullName(userId: String): String {
+    return try {
+        val doc = FirebaseFirestore.getInstance().collection("users").document(userId).get().await()
+        val first = doc.getString("firstName") ?: ""
+        val last = doc.getString("lastName") ?: ""
+        "$first $last"
+    } catch (_: Exception) {
+        "Unknown"
+    }
+}
