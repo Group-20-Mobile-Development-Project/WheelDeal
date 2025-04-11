@@ -40,34 +40,60 @@ fun BuyScreen(
     val state by viewModel.listingState.collectAsState()
     val favoriteIds by favoritesViewModel.favoriteIds.collectAsState()
 
-    Box(
+    var searchQuery by remember { mutableStateOf("") }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
             .padding(16.dp)
     ) {
+        // 🔍 Search Field
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("Search cars...") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
+        )
+
+        // 🔄 Listing content
         when (state) {
             is ListingState.Loading -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             }
 
             is ListingState.Error -> {
                 val message = (state as ListingState.Error).message
-                Text(
-                    "Error loading listings: $message",
-                    color = Color.Red,
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Error loading listings: $message", color = Color.Red)
+                }
             }
 
             is ListingState.Success -> {
                 val listings = (state as ListingState.Success).listings
 
-                if (listings.isEmpty()) {
-                    Text("No listings available.", modifier = Modifier.align(Alignment.Center))
+                val filtered = listings.filter {
+                    val query = searchQuery.trim().lowercase()
+                    query.isBlank() || listOf(
+                        it.brand,
+                        it.model,
+                        it.location
+                    ).any { field -> field.lowercase().contains(query) }
+                }
+
+                if (filtered.isEmpty()) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No listings found.")
+                    }
                 } else {
                     LazyColumn {
-                        items(listings) { listing ->
+                        items(filtered) { listing ->
                             ListingCard(
                                 listing = listing,
                                 isFavorite = favoriteIds.contains(listing.id),
