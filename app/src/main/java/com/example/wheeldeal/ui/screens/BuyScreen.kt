@@ -22,9 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.wheeldeal.model.CarListing
-import com.example.wheeldeal.viewmodel.FavoritesViewModel
-import com.example.wheeldeal.viewmodel.ListingState
-import com.example.wheeldeal.viewmodel.ListingViewModel
+import com.example.wheeldeal.viewmodel.*
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -35,24 +33,19 @@ import java.util.*
 @Composable
 fun BuyScreen(
     viewModel: ListingViewModel = viewModel(),
-    favoritesViewModel: FavoritesViewModel = viewModel()
+    favoritesViewModel: FavoritesViewModel = viewModel(),
+    filterViewModel: BuyFilterViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val state by viewModel.listingState.collectAsState()
     val favoriteIds by favoritesViewModel.favoriteIds.collectAsState()
+    val filters by filterViewModel.filters.collectAsState()
 
-    var showFilters by remember { mutableStateOf(false) }
-    var brand by remember { mutableStateOf("") }
-    var transmission by remember { mutableStateOf("") }
-    var fuelType by remember { mutableStateOf("") }
-    var year by remember { mutableStateOf("") }
-    var budget by remember { mutableFloatStateOf(50000f) }
-    var appliedFilters by remember {
-        mutableStateOf(Triple("", "", ""))
-    }
-    var appliedYear by remember { mutableStateOf("") }
-    var appliedBudget by remember { mutableFloatStateOf(50000f) }
-    var filtersApplied by remember { mutableStateOf(false) }
+    var localBrand by remember { mutableStateOf(filters.brand) }
+    var localTransmission by remember { mutableStateOf(filters.transmission) }
+    var localFuelType by remember { mutableStateOf(filters.fuelType) }
+    var localYear by remember { mutableStateOf(filters.year) }
+    var localBudget by remember { mutableFloatStateOf(filters.budget) }
 
     Column(
         modifier = Modifier
@@ -61,79 +54,67 @@ fun BuyScreen(
             .padding(16.dp)
     ) {
         Button(
-            onClick = { showFilters = !showFilters },
+            onClick = { filterViewModel.toggleFilterSection() },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text(if (showFilters) "Hide Filters" else "Show Filters")
+            Text(if (filters.showFilters) "Hide Filters" else "Show Filters")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (showFilters) {
+        if (filters.showFilters) {
             OutlinedTextField(
-                value = brand,
-                onValueChange = { brand = it },
+                value = localBrand,
+                onValueChange = { localBrand = it },
                 label = { Text("Brand") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
                 shape = RoundedCornerShape(24.dp)
             )
-
-            FilterDropdown("Transmission", listOf("Auto", "Manual"), transmission) {
-                transmission = it
+            FilterDropdown("Transmission", listOf("Auto", "Manual"), localTransmission) {
+                localTransmission = it
+            }
+            FilterDropdown("Fuel Type", listOf("Petrol", "Diesel", "Electric", "Hybrid"), localFuelType) {
+                localFuelType = it
+            }
+            FilterDropdown("Year", (2000..2025).map { it.toString() }, localYear) {
+                localYear = it
             }
 
-            FilterDropdown("Fuel Type", listOf("Petrol", "Diesel", "Electric", "Hybrid"), fuelType) {
-                fuelType = it
-            }
-
-            FilterDropdown("Year", (2000..2025).map { it.toString() }, year) {
-                year = it
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Budget: $${budget.toInt()}")
+            Text("Budget: $${localBudget.toInt()}")
             Slider(
-                value = budget,
-                onValueChange = { budget = it },
+                value = localBudget,
+                onValueChange = { localBudget = it },
                 valueRange = 1000f..1000000f,
                 steps = 20
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Button(
-                    onClick = {
-                        appliedFilters = Triple(brand.trim(), transmission.trim(), fuelType.trim())
-                        appliedYear = year
-                        appliedBudget = budget
-                        filtersApplied = true
-                    },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Apply Filters")
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                OutlinedButton(
-                    onClick = {
-                        brand = ""
-                        transmission = ""
-                        fuelType = ""
-                        year = ""
-                        budget = 50000f
-                        appliedFilters = Triple("", "", "")
-                        appliedYear = ""
-                        appliedBudget = 50000f
-                        filtersApplied = false
-                    },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                OutlinedButton(onClick = {
+                    localBrand = ""
+                    localTransmission = ""
+                    localFuelType = ""
+                    localYear = ""
+                    localBudget = 50000f
+                }) {
                     Text("Clear")
+                }
+
+                Button(onClick = {
+                    filterViewModel.updateAllFilters(
+                        brand = localBrand,
+                        transmission = localTransmission,
+                        fuelType = localFuelType,
+                        year = localYear,
+                        budget = localBudget
+                    )
+                }) {
+                    Text("Apply Filters")
                 }
             }
 
@@ -146,26 +127,15 @@ fun BuyScreen(
             }
 
             is ListingState.Error -> {
-                val message = (state as ListingState.Error).message
+                val msg = (state as ListingState.Error).message
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Error: $message", color = Color.Red)
+                    Text("Error loading listings: $msg", color = Color.Red)
                 }
             }
 
             is ListingState.Success -> {
                 val listings = (state as ListingState.Success).listings
-
-                val filtered = if (filtersApplied) {
-                    listings.filter {
-                        (appliedFilters.first.isBlank() || it.brand.equals(appliedFilters.first, ignoreCase = true)) &&
-                                (appliedFilters.second.isBlank() || it.transmission == appliedFilters.second) &&
-                                (appliedFilters.third.isBlank() || it.fuelType == appliedFilters.third) &&
-                                (appliedYear.isBlank() || it.year.toString() == appliedYear) &&
-                                (it.price <= appliedBudget)
-                    }
-                } else {
-                    listings
-                }
+                val filtered = filterViewModel.filterListings(listings)
 
                 if (filtered.isEmpty()) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -199,13 +169,14 @@ fun BuyScreen(
 fun FilterDropdown(
     label: String,
     options: List<String>,
-    selectedOption: String,
-    onOptionSelected: (String) -> Unit
+    selected: String,
+    onSelected: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
         OutlinedTextField(
-            value = selectedOption,
+            value = selected,
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
@@ -214,18 +185,14 @@ fun FilterDropdown(
                 .fillMaxWidth()
                 .menuAnchor()
                 .padding(vertical = 4.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color.Gray,
-                focusedBorderColor = MaterialTheme.colorScheme.primary
-            )
+            shape = RoundedCornerShape(24.dp)
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
                 DropdownMenuItem(
                     text = { Text(option) },
                     onClick = {
-                        onOptionSelected(option)
+                        onSelected(option)
                         expanded = false
                     }
                 )
@@ -234,6 +201,13 @@ fun FilterDropdown(
     }
 }
 
+@Composable
+fun ListingInfo(label: String, value: String) {
+    Row(modifier = Modifier.padding(vertical = 2.dp)) {
+        Text("$label: ", fontWeight = FontWeight.SemiBold, color = Color(0xFF333333))
+        Text(value)
+    }
+}
 
 @Composable
 fun ListingCard(
@@ -265,6 +239,16 @@ fun ListingCard(
                         .height(180.dp)
                         .clip(MaterialTheme.shapes.medium)
                 )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .background(Color.LightGray),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No Image", color = Color.DarkGray)
+                }
             }
 
             Column(modifier = Modifier.padding(16.dp)) {
@@ -283,7 +267,6 @@ fun ListingCard(
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Posted by $posterName · ${formatTimestamp(listing.createdAt)}",
@@ -315,14 +298,6 @@ fun ListingCard(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun ListingInfo(label: String, value: String) {
-    Row(modifier = Modifier.padding(vertical = 2.dp)) {
-        Text("$label: ", fontWeight = FontWeight.SemiBold, color = Color(0xFF333333))
-        Text(value)
     }
 }
 
