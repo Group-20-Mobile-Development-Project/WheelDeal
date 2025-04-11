@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -15,15 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.wheeldeal.model.CarListing
-import com.example.wheeldeal.viewmodel.FavoritesViewModel
-import com.example.wheeldeal.viewmodel.ListingState
-import com.example.wheeldeal.viewmodel.ListingViewModel
-import androidx.compose.ui.platform.LocalContext
+import com.example.wheeldeal.viewmodel.*
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -34,40 +33,117 @@ import java.util.*
 @Composable
 fun BuyScreen(
     viewModel: ListingViewModel = viewModel(),
-    favoritesViewModel: FavoritesViewModel = viewModel()
+    favoritesViewModel: FavoritesViewModel = viewModel(),
+    filterViewModel: BuyFilterViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val state by viewModel.listingState.collectAsState()
     val favoriteIds by favoritesViewModel.favoriteIds.collectAsState()
+    val filters by filterViewModel.filters.collectAsState()
 
-    Box(
+    var localBrand by remember { mutableStateOf(filters.brand) }
+    var localTransmission by remember { mutableStateOf(filters.transmission) }
+    var localFuelType by remember { mutableStateOf(filters.fuelType) }
+    var localYear by remember { mutableStateOf(filters.year) }
+    var localBudget by remember { mutableFloatStateOf(filters.budget) }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f))
             .padding(16.dp)
     ) {
+        Button(
+            onClick = { filterViewModel.toggleFilterSection() },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(if (filters.showFilters) "Hide Filters" else "Show Filters")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        if (filters.showFilters) {
+            OutlinedTextField(
+                value = localBrand,
+                onValueChange = { localBrand = it },
+                label = { Text("Brand") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                shape = RoundedCornerShape(24.dp)
+            )
+            FilterDropdown("Transmission", listOf("Auto", "Manual"), localTransmission) {
+                localTransmission = it
+            }
+            FilterDropdown("Fuel Type", listOf("Petrol", "Diesel", "Electric", "Hybrid"), localFuelType) {
+                localFuelType = it
+            }
+            FilterDropdown("Year", (2000..2025).map { it.toString() }, localYear) {
+                localYear = it
+            }
+
+            Text("Budget: $${localBudget.toInt()}")
+            Slider(
+                value = localBudget,
+                onValueChange = { localBudget = it },
+                valueRange = 1000f..1000000f,
+                steps = 20
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                OutlinedButton(onClick = {
+                    localBrand = ""
+                    localTransmission = ""
+                    localFuelType = ""
+                    localYear = ""
+                    localBudget = 50000f
+                }) {
+                    Text("Clear")
+                }
+
+                Button(onClick = {
+                    filterViewModel.updateAllFilters(
+                        brand = localBrand,
+                        transmission = localTransmission,
+                        fuelType = localFuelType,
+                        year = localYear,
+                        budget = localBudget
+                    )
+                }) {
+                    Text("Apply Filters")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
         when (state) {
-            is ListingState.Loading -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            is ListingState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
 
             is ListingState.Error -> {
-                val message = (state as ListingState.Error).message
-                Text(
-                    "Error loading listings: $message",
-                    color = Color.Red,
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                val msg = (state as ListingState.Error).message
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Error loading listings: $msg", color = Color.Red)
+                }
             }
 
             is ListingState.Success -> {
                 val listings = (state as ListingState.Success).listings
+                val filtered = filterViewModel.filterListings(listings)
 
-                if (listings.isEmpty()) {
-                    Text("No listings available.", modifier = Modifier.align(Alignment.Center))
+                if (filtered.isEmpty()) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No listings found.")
+                    }
                 } else {
                     LazyColumn {
-                        items(listings) { listing ->
+                        items(filtered) { listing ->
                             ListingCard(
                                 listing = listing,
                                 isFavorite = favoriteIds.contains(listing.id),
@@ -88,37 +164,48 @@ fun BuyScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListingInfo(label: String, value: String) {
-    Row(modifier = Modifier.padding(vertical = 2.dp)) {
-        Text(
-            text = "$label: ",
-            fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF333333)
+fun FilterDropdown(
+    label: String,
+    options: List<String>,
+    selected: String,
+    onSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+        OutlinedTextField(
+            value = selected,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor()
+                .padding(vertical = 4.dp),
+            shape = RoundedCornerShape(24.dp)
         )
-        Text(text = value)
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onSelected(option)
+                        expanded = false
+                    }
+                )
+            }
+        }
     }
 }
 
-fun formatCurrency(price: Double): String {
-    val formatter = NumberFormat.getCurrencyInstance(Locale.US)
-    return formatter.format(price)
-}
-
-fun formatTimestamp(timestamp: Timestamp?): String {
-    if (timestamp == null) return ""
-    val sdf = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
-    return sdf.format(timestamp.toDate())
-}
-
-suspend fun fetchUserFullName(userId: String): String {
-    return try {
-        val doc = FirebaseFirestore.getInstance().collection("users").document(userId).get().await()
-        val first = doc.getString("firstName") ?: ""
-        val last = doc.getString("lastName") ?: ""
-        "$first $last"
-    } catch (e: Exception) {
-        "Unknown"
+@Composable
+fun ListingInfo(label: String, value: String) {
+    Row(modifier = Modifier.padding(vertical = 2.dp)) {
+        Text("$label: ", fontWeight = FontWeight.SemiBold, color = Color(0xFF333333))
+        Text(value)
     }
 }
 
@@ -188,20 +275,20 @@ fun ListingCard(
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 
-                ListingInfo(label = "Condition", value = listing.condition)
-                ListingInfo(label = "Price", value = formatCurrency(listing.price))
-                ListingInfo(label = "Negotiable", value = if (listing.negotiable) "Yes" else "No")
-                ListingInfo(label = "Location", value = listing.location)
-                ListingInfo(label = "Mileage", value = "${listing.avgMileage} km/l")
-                ListingInfo(label = "Odometer", value = "${listing.odometer} km")
-                ListingInfo(label = "Color", value = listing.color)
-                ListingInfo(label = "Transmission", value = listing.transmission)
-                ListingInfo(label = "Engine", value = "${listing.engineCapacity} cc")
-                ListingInfo(label = "Fuel Type", value = listing.fuelType)
-                ListingInfo(label = "Seats", value = listing.seats.toString())
-                ListingInfo(label = "Accidents", value = listing.accidents.toString())
-                ListingInfo(label = "Last Inspection", value = listing.lastInspection)
-                ListingInfo(label = "Ownership", value = listing.ownership)
+                ListingInfo("Condition", listing.condition)
+                ListingInfo("Price", formatCurrency(listing.price))
+                ListingInfo("Negotiable", if (listing.negotiable) "Yes" else "No")
+                ListingInfo("Location", listing.location)
+                ListingInfo("Mileage", "${listing.avgMileage} km/l")
+                ListingInfo("Odometer", "${listing.odometer} km")
+                ListingInfo("Color", listing.color)
+                ListingInfo("Transmission", listing.transmission)
+                ListingInfo("Engine", "${listing.engineCapacity} cc")
+                ListingInfo("Fuel Type", listing.fuelType)
+                ListingInfo("Seats", listing.seats.toString())
+                ListingInfo("Accidents", listing.accidents.toString())
+                ListingInfo("Last Inspection", listing.lastInspection)
+                ListingInfo("Ownership", listing.ownership)
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -214,3 +301,24 @@ fun ListingCard(
     }
 }
 
+fun formatCurrency(price: Double): String {
+    val formatter = NumberFormat.getCurrencyInstance(Locale.US)
+    return formatter.format(price)
+}
+
+fun formatTimestamp(timestamp: Timestamp?): String {
+    if (timestamp == null) return ""
+    val sdf = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
+    return sdf.format(timestamp.toDate())
+}
+
+suspend fun fetchUserFullName(userId: String): String {
+    return try {
+        val doc = FirebaseFirestore.getInstance().collection("users").document(userId).get().await()
+        val first = doc.getString("firstName") ?: ""
+        val last = doc.getString("lastName") ?: ""
+        "$first $last"
+    } catch (_: Exception) {
+        "Unknown"
+    }
+}

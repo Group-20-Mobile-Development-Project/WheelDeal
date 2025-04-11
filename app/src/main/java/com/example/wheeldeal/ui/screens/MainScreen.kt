@@ -17,6 +17,7 @@ import com.example.wheeldeal.ui.components.BottomNavigationBar
 import com.example.wheeldeal.ui.components.TopNavigationBar
 import com.example.wheeldeal.ui.navigation.Screen
 import com.example.wheeldeal.viewmodel.AuthViewModel
+import com.example.wheeldeal.viewmodel.BuyFilterViewModel
 
 @Composable
 fun MainScreen(
@@ -33,6 +34,7 @@ fun MainScreen(
         BottomNavItem("Sell", Icons.Default.Add, Screen.Sell.route),
         BottomNavItem("Account", Icons.Default.Person, Screen.Account.route)
     )
+    val filterViewModel: BuyFilterViewModel = viewModel()
 
     Scaffold(
         topBar = {
@@ -63,7 +65,9 @@ fun MainScreen(
                 startDestination = Screen.Home.route
             ) {
                 composable(Screen.Home.route) { HomeScreen() }
-                composable(Screen.Buy.route) { BuyScreen() }
+                composable(Screen.Buy.route) {
+                    BuyScreen(filterViewModel = filterViewModel)
+                }
                 composable(Screen.Favorites.route) { FavoritesScreen() }
                 composable(Screen.Sell.route) { SellScreen() }
 
