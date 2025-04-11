@@ -41,13 +41,20 @@ fun BuyScreen(
     val state by viewModel.listingState.collectAsState()
     val favoriteIds by favoritesViewModel.favoriteIds.collectAsState()
 
-    // Filter states
     var showFilters by remember { mutableStateOf(false) }
+
     var selectedBrand by remember { mutableStateOf("") }
     var selectedTransmission by remember { mutableStateOf("") }
     var selectedFuelType by remember { mutableStateOf("") }
     var selectedYear by remember { mutableStateOf("") }
     var budget by remember { mutableFloatStateOf(50000f) }
+
+    // Filters that are applied after "Apply Filters"
+    var appliedBrand by remember { mutableStateOf("") }
+    var appliedTransmission by remember { mutableStateOf("") }
+    var appliedFuelType by remember { mutableStateOf("") }
+    var appliedYear by remember { mutableStateOf("") }
+    var appliedBudget by remember { mutableFloatStateOf(50000f) }
 
     Column(
         modifier = Modifier
@@ -55,7 +62,6 @@ fun BuyScreen(
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f))
             .padding(16.dp)
     ) {
-        // Toggle filter section
         Button(
             onClick = { showFilters = !showFilters },
             modifier = Modifier.fillMaxWidth(),
@@ -64,9 +70,8 @@ fun BuyScreen(
             Text(if (showFilters) "Hide Filters" else "Show Filters")
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
         if (showFilters) {
+            Spacer(modifier = Modifier.height(12.dp))
             FilterDropdown("Brand", listOf("Audi", "BMW", "Tesla", "Toyota"), selectedBrand) {
                 selectedBrand = it
             }
@@ -85,12 +90,50 @@ fun BuyScreen(
             Slider(
                 value = budget,
                 onValueChange = { budget = it },
-                valueRange = 5000f..100000f,
-                steps = 10
+                valueRange = 5000f..1000000f,
+                steps = 20
             )
-        }
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Button(
+                    onClick = {
+                        appliedBrand = selectedBrand
+                        appliedTransmission = selectedTransmission
+                        appliedFuelType = selectedFuelType
+                        appliedYear = selectedYear
+                        appliedBudget = budget
+                        Toast.makeText(context, "Filters applied!", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Apply Filters")
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                OutlinedButton(
+                    onClick = {
+                        selectedBrand = ""
+                        selectedTransmission = ""
+                        selectedFuelType = ""
+                        selectedYear = ""
+                        budget = 50000f
+
+                        appliedBrand = ""
+                        appliedTransmission = ""
+                        appliedFuelType = ""
+                        appliedYear = ""
+                        appliedBudget = 50000f
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Reset All")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+        }
 
         when (state) {
             is ListingState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -108,11 +151,11 @@ fun BuyScreen(
                 val listings = (state as ListingState.Success).listings
 
                 val filtered = listings.filter {
-                    (selectedBrand.isBlank() || it.brand == selectedBrand) &&
-                            (selectedTransmission.isBlank() || it.transmission == selectedTransmission) &&
-                            (selectedFuelType.isBlank() || it.fuelType == selectedFuelType) &&
-                            (selectedYear.isBlank() || it.year.toString() == selectedYear)
-
+                    (appliedBrand.isBlank() || it.brand == appliedBrand) &&
+                            (appliedTransmission.isBlank() || it.transmission == appliedTransmission) &&
+                            (appliedFuelType.isBlank() || it.fuelType == appliedFuelType) &&
+                            (appliedYear.isBlank() || it.year.toString() == appliedYear) &&
+                            (it.price <= appliedBudget)
                 }
 
                 if (filtered.isEmpty()) {
