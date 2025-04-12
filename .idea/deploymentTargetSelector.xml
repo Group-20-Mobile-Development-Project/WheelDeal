@@ -26,6 +26,12 @@
           </targets>
         </DialogSelection>
       </SelectionState>
+      <SelectionState runConfigName="AdsBanner">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="PreviewAdsBanner">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>
