@@ -33,7 +33,7 @@ fun AdsBannerSlider(
     ads: List<Ad>,
     onClick: (Ad) -> Unit = {}
 ) {
-    var currentAdIndex by remember { mutableIntStateOf(0) }  // Replaced mutableStateOf with mutableIntStateOf
+    var currentAdIndex by remember { mutableIntStateOf(0) }
     val currentAd = ads[currentAdIndex]
 
     // Auto-slide logic (change ad every 5 seconds)
@@ -44,7 +44,6 @@ fun AdsBannerSlider(
         }
     }
 
-    // No transition animation, just display the current ad
     AdsBanner(
         modifier = modifier,
         title = currentAd.title,
@@ -77,9 +76,11 @@ fun AdsBanner(
                 .background(
                     Brush.linearGradient(
                         colors = listOf(
-                            Color(0xFFFFC107),  // Bright Yellow
-                            Color(0xFFFFA000)   // Darker Yellow/Orange
-                        )
+                            Color(0xFF263238),  // Dark Blue
+                            Color(0xFF1A237E)   // Deep Purple
+                        ),
+                        start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                        end = androidx.compose.ui.geometry.Offset(1f, 1f)
                     )
                 )
         ) {
@@ -91,6 +92,23 @@ fun AdsBanner(
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
+                // Slight gradient overlay to soften the text
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xAA000000),  // Light opacity black
+                                    Color(0x00000000)   // Transparent black
+                                ),
+                                start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                                end = androidx.compose.ui.geometry.Offset(1f, 1f)
+                            )
+                        )
+                )
+
+                // Content inside the ad
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
@@ -107,24 +125,24 @@ fun AdsBanner(
                         Text(
                             text = title,
                             style = AppTypography.titleLarge.copy(fontSize = 20.sp),
-                            color = Color.White,
+                            color = Color(0xFFF1F1F1),  // Light gray color for readability
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = subtitle,
                             style = AppTypography.bodyMedium.copy(fontSize = 14.sp),
-                            color = Color.White.copy(alpha = 0.9f),
+                            color = Color(0xFFB0BEC5), // Softer gray tone for subtitle
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
                         Button(
                             onClick = onClick,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF)), // Neon blue button
                             shape = MaterialTheme.shapes.medium,
                             modifier = Modifier.padding(top = 8.dp)
                         ) {
-                            Text("Learn More", color = Color(0xFFFFA000)) // Orange color for button text
+                            Text("Learn More", color = Color.Black)  // Dark text for better contrast
                         }
                     }
 
@@ -133,7 +151,7 @@ fun AdsBanner(
                     Icon(
                         imageVector = Icons.Default.LocalOffer,
                         contentDescription = "Ad Icon",
-                        tint = Color.White,
+                        tint = Color(0xFFF1F1F1),  // Light gray icon color
                         modifier = Modifier
                             .size(56.dp)
                             .weight(0.5f)
