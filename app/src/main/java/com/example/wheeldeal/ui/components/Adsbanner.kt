@@ -1,5 +1,11 @@
 package com.example.wheeldeal.ui.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.wheeldeal.ui.theme.AppTypography
+import com.example.wheeldeal.ui.theme.FontIconColor
 import kotlinx.coroutines.delay
 
 data class Ad(
@@ -27,13 +34,14 @@ data class Ad(
     val image: Painter? = null
 )
 
+@OptIn(ExperimentalAnimationApi::class) // Opt-in to use the experimental animation API
 @Composable
 fun AdsBannerSlider(
     modifier: Modifier = Modifier,
     ads: List<Ad>,
     onClick: (Ad) -> Unit = {}
 ) {
-    var currentAdIndex by remember { mutableIntStateOf(0) }
+    var currentAdIndex by remember { mutableIntStateOf(0) }  // Replaced mutableStateOf with mutableIntStateOf
     val currentAd = ads[currentAdIndex]
 
     // Auto-slide logic (change ad every 5 seconds)
@@ -44,13 +52,22 @@ fun AdsBannerSlider(
         }
     }
 
-    AdsBanner(
-        modifier = modifier,
-        title = currentAd.title,
-        subtitle = currentAd.subtitle,
-        adBannerImage = currentAd.image,
-        onClick = { onClick(currentAd) }
-    )
+    // Display the current ad with animation
+    AnimatedContent(
+        targetState = currentAdIndex,
+        transitionSpec = {
+            fadeIn(animationSpec = tween(durationMillis = 500)) with fadeOut(animationSpec = tween(durationMillis = 500))
+        }
+    ) { targetAdIndex ->
+        val ad = ads[targetAdIndex]
+        AdsBanner(
+            modifier = modifier,
+            title = ad.title,
+            subtitle = ad.subtitle,
+            adBannerImage = ad.image,
+            onClick = { onClick(ad) }
+        )
+    }
 }
 
 @Composable
@@ -76,11 +93,9 @@ fun AdsBanner(
                 .background(
                     Brush.linearGradient(
                         colors = listOf(
-                            Color(0xFF263238),  // Dark Blue
-                            Color(0xFF1A237E)   // Deep Purple
-                        ),
-                        start = androidx.compose.ui.geometry.Offset(0f, 0f),
-                        end = androidx.compose.ui.geometry.Offset(1f, 1f)
+                            Color(0xFFFFE082),  // Light Yellow
+                            Color(0xFFFFB300)   // Darker Yellow/Orange
+                        )
                     )
                 )
         ) {
@@ -92,23 +107,6 @@ fun AdsBanner(
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
-                // Slight gradient overlay to soften the text
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    Color(0xAA000000),  // Light opacity black
-                                    Color(0x00000000)   // Transparent black
-                                ),
-                                start = androidx.compose.ui.geometry.Offset(0f, 0f),
-                                end = androidx.compose.ui.geometry.Offset(1f, 1f)
-                            )
-                        )
-                )
-
-                // Content inside the ad
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
@@ -125,24 +123,24 @@ fun AdsBanner(
                         Text(
                             text = title,
                             style = AppTypography.titleLarge.copy(fontSize = 20.sp),
-                            color = Color(0xFFF1F1F1),  // Light gray color for readability
+                            color = FontIconColor, // Using FontIconColor for text color
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = subtitle,
                             style = AppTypography.bodyMedium.copy(fontSize = 14.sp),
-                            color = Color(0xFFB0BEC5), // Softer gray tone for subtitle
+                            color = FontIconColor.copy(alpha = 0.9f), // Using FontIconColor for text color
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
                         Button(
                             onClick = onClick,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF)), // Neon blue button
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                             shape = MaterialTheme.shapes.medium,
                             modifier = Modifier.padding(top = 8.dp)
                         ) {
-                            Text("Learn More", color = Color.Black)  // Dark text for better contrast
+                            Text("Learn More", color = Color(0xFFFFA000)) // Orange color for button text
                         }
                     }
 
@@ -151,7 +149,7 @@ fun AdsBanner(
                     Icon(
                         imageVector = Icons.Default.LocalOffer,
                         contentDescription = "Ad Icon",
-                        tint = Color(0xFFF1F1F1),  // Light gray icon color
+                        tint = FontIconColor, // Using FontIconColor for icon tint
                         modifier = Modifier
                             .size(56.dp)
                             .weight(0.5f)
