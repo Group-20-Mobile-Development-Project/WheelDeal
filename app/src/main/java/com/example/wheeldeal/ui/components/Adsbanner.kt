@@ -136,11 +136,11 @@ fun AdsBanner(
                         )
                         Button(
                             onClick = onClick,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                            colors = ButtonDefaults.buttonColors(containerColor =  FontIconColor),
                             shape = MaterialTheme.shapes.medium,
                             modifier = Modifier.padding(top = 8.dp)
                         ) {
-                            Text("Learn More", color = Color(0xFFFFA000)) // Orange color for button text
+                            Text("Learn More", color = Color.White) // White color for the button text
                         }
                     }
 
