@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.wheeldeal.viewmodel.NotificationViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,16 +37,8 @@ fun MainScreen(
         BottomNavItem("Account", Icons.Default.Person, Screen.Account.route)
     )
     val filterViewModel: BuyFilterViewModel = viewModel()
+    val notificationViewModel: NotificationViewModel = viewModel()
 
-    val sampleNotifications = listOf(
-        NotificationItem("1", "Inspection completed"),
-        NotificationItem("2", "Notification 2"),
-        NotificationItem("3", "Notification 3"),
-        NotificationItem("4", "Notification 4"),
-        NotificationItem("5", "Notification 5"),
-        NotificationItem("6", "Notification 6"),
-        NotificationItem("7", "Notification 7"),
-    )
 
     Scaffold(
         topBar = {
@@ -105,8 +98,13 @@ fun MainScreen(
                 }
 
                 composable("notifications") {
-                    NotificationScreen(notifications = sampleNotifications)
+                    NotificationScreen(
+                        navController = bottomNavController,
+                        viewModel = notificationViewModel
+                    )
             }
+                composable("buy") {
+                    BuyScreen(filterViewModel = filterViewModel) }
         }
     }
 }

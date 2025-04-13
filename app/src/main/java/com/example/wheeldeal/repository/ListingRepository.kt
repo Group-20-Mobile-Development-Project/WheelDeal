@@ -56,5 +56,21 @@ class ListingRepository {
             Result.failure(e)
         }
     }
-
+    suspend fun sendNewListingNotification(listing: CarListing): Result<Void?> {
+        return try {
+            val notificationsCollection = FirebaseFirestore.getInstance().collection("notifications")
+            val notificationData = mapOf(
+                "title" to "New Car Listed: ${listing.brand} ${listing.model}",
+                "message" to "${listing.brand} ${listing.model} is now available for \$${listing.price}.",
+                "timestamp" to Timestamp.now(),
+                "carId" to listing.id
+            )
+            notificationsCollection.add(notificationData).await()
+            Result.success(null)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
+
+

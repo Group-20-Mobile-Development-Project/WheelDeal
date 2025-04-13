@@ -39,9 +39,13 @@ class ListingViewModel(
         viewModelScope.launch {
             val result = repository.addListing(listing)
             onResult(result.isSuccess)
-            if (result.isSuccess) fetchListings()
+            if (result.isSuccess) {
+                repository.sendNewListingNotification(listing)
+                fetchListings()
+            }
         }
     }
+
 
     fun deleteListing(listingId: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
