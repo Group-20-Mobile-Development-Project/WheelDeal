@@ -12,6 +12,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.wheeldeal.model.NotificationItem
 import com.example.wheeldeal.ui.components.BottomNavItem
 import com.example.wheeldeal.ui.components.BottomNavigationBar
 import com.example.wheeldeal.ui.components.TopNavigationBar
@@ -36,11 +37,21 @@ fun MainScreen(
     )
     val filterViewModel: BuyFilterViewModel = viewModel()
 
+    val sampleNotifications = listOf(
+        NotificationItem("1", "Inspection completed"),
+        NotificationItem("2", "Notification 2"),
+        NotificationItem("3", "Notification 3"),
+        NotificationItem("4", "Notification 4"),
+        NotificationItem("5", "Notification 5"),
+        NotificationItem("6", "Notification 6"),
+        NotificationItem("7", "Notification 7"),
+    )
+
     Scaffold(
         topBar = {
             TopNavigationBar(
                 onMessageClick = { /* handle messages */ },
-                onNotificationClick = { /* handle notifications */ }
+                onNotificationClick = { bottomNavController.navigate("notifications") }
             )
         },
         bottomBar = {
@@ -92,7 +103,11 @@ fun MainScreen(
                         )
                     }
                 }
+
+                composable("notifications") {
+                    NotificationScreen(notifications = sampleNotifications)
             }
         }
     }
+}
 }
