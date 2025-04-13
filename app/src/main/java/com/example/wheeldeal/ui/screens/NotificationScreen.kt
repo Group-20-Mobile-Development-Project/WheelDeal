@@ -6,10 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,14 +20,21 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.wheeldeal.R
 import com.example.wheeldeal.model.NotificationItem
 import com.example.wheeldeal.ui.theme.DarkBlue
 import com.example.wheeldeal.ui.theme.WheelDealYellow
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.example.wheeldeal.viewmodel.NotificationViewModel
 
 @Composable
-fun NotificationScreen(notifications: List<NotificationItem>) {
+fun NotificationScreen(
+    navController: NavController,
+    viewModel: NotificationViewModel = viewModel()
+) {
+    val notifications by viewModel.notifications.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -35,7 +43,6 @@ fun NotificationScreen(notifications: List<NotificationItem>) {
     ) {
         Spacer(modifier = Modifier.height(30.dp))
 
-        // Title
         Text(
             text = "Notifications",
             fontSize = 32.sp,
@@ -46,7 +53,6 @@ fun NotificationScreen(notifications: List<NotificationItem>) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Bell Icon
         Image(
             painter = painterResource(id = R.drawable.notification),
             contentDescription = "Bell Icon",
@@ -57,37 +63,56 @@ fun NotificationScreen(notifications: List<NotificationItem>) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Notification List
         LazyColumn {
             items(notifications) { notification ->
-                NotificationCard(notification)
+                ExpandableNotificationCard(notification, navController)
             }
         }
     }
 }
 
 @Composable
-fun NotificationCard(notification: NotificationItem) {
-    Row(
+fun ExpandableNotificationCard(
+    notification: NotificationItem,
+    navController: NavController
+) {
+    var isExpanded by remember { mutableStateOf(false) }
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clip(RoundedCornerShape(50))
+            .clip(RoundedCornerShape(16.dp))
             .background(DarkBlue)
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .clickable {
+                navController.navigate("buy")
+            }
+            .padding(16.dp)
     ) {
-        Text(
-            text = notification.title,
-            fontStyle = FontStyle.Italic,
-            fontSize = 18.sp,
-            color = Color.White,
-            modifier = Modifier.weight(1f)
-        )
-        Icon(
-            imageVector = Icons.Default.ArrowForward,
-            contentDescription = "Go to details",
-            tint = Color.White
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = notification.title,
+                fontStyle = FontStyle.Italic,
+                fontSize = 18.sp,
+                color = Color.White,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = { isExpanded = !isExpanded }) {
+                Icon(
+                    imageVector = Icons.Default.ArrowForward,
+                    contentDescription = "Expand",
+                    tint = Color.White
+                )
+            }
+        }
+
+        if (isExpanded) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = notification.details,
+                fontSize = 14.sp,
+                color = Color.LightGray
+            )
+        }
     }
 }
