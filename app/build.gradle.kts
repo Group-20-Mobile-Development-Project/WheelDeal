@@ -45,6 +45,7 @@ android {
 dependencies {
     // Jetpack Compose dependencies
     implementation(platform(libs.androidx.compose.bom))
+    implementation("androidx.compose.material:material:1.5.4")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
