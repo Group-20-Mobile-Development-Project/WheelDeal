@@ -11,4 +11,8 @@ sealed class Screen(val route: String) {
     object Sell : Screen("sell")
     object Account : Screen("account")
     object Profile : Screen("profile")
+
+    object CarDetails : Screen("carDetails/{carJson}") {
+        fun createRoute(carJson: String) = "carDetails/$carJson"
+    }
 }
