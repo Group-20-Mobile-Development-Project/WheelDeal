@@ -29,9 +29,18 @@ import kotlinx.coroutines.tasks.await
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.navigation.NavController
+import com.google.gson.Gson
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import com.example.wheeldeal.ui.navigation.Screen
+import androidx.compose.foundation.clickable
+
+
 
 @Composable
 fun BuyScreen(
+    navController: NavController,
     viewModel: ListingViewModel = viewModel(),
     favoritesViewModel: FavoritesViewModel = viewModel(),
     filterViewModel: BuyFilterViewModel = viewModel()
@@ -154,6 +163,10 @@ fun BuyScreen(
                                         if (favoriteIds.contains(listing.id)) "Removed from favorites" else "Added to favorites",
                                         Toast.LENGTH_SHORT
                                     ).show()
+                                },
+                                onClick = {
+                                    val json = URLEncoder.encode(Gson().toJson(listing), StandardCharsets.UTF_8.toString())
+                                    navController.navigate(Screen.CarDetails.createRoute(json))
                                 }
                             )
                         }
@@ -213,7 +226,8 @@ fun ListingInfo(label: String, value: String) {
 fun ListingCard(
     listing: CarListing,
     isFavorite: Boolean,
-    onToggleFavorite: () -> Unit
+    onToggleFavorite: () -> Unit,
+    onClick: () -> Unit
 ) {
     var posterName by remember { mutableStateOf("") }
 
@@ -224,7 +238,8 @@ fun ListingCard(
     Card(
         modifier = Modifier
             .padding(vertical = 8.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF2ECF1)),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
