@@ -2,14 +2,16 @@ package com.example.wheeldeal.ui.navigation
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.*
+import androidx.navigation.compose.*
 import com.example.wheeldeal.ui.screens.*
 import com.example.wheeldeal.viewmodel.AuthViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
+import com.example.wheeldeal.model.CarListing
+import com.google.gson.Gson
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun NavGraph(
@@ -40,9 +42,11 @@ fun NavGraph(
                 }
             }
         }
+
         composable(Screen.Main.route) {
             MainScreen(viewModel = viewModel, navController = navController)
         }
+
         composable(Screen.Profile.route) {
             ProfileScreen(
                 onBackToMain = {
@@ -52,6 +56,21 @@ fun NavGraph(
                 },
                 viewModel = viewModel
             )
+        }
+
+        // ✅ This is your working CarDetails navigation
+        composable(
+            route = Screen.CarDetails.route,
+            arguments = listOf(
+                navArgument("carJson") {
+                    defaultValue = ""
+                }
+            )
+        ) { backStackEntry ->
+            val encodedJson = backStackEntry.arguments?.getString("carJson") ?: ""
+            val decodedJson = URLDecoder.decode(encodedJson, StandardCharsets.UTF_8.toString())
+            val listing = Gson().fromJson(decodedJson, CarListing::class.java)
+            CarDetailsScreen(listing = listing, navController = navController)
         }
     }
 }
