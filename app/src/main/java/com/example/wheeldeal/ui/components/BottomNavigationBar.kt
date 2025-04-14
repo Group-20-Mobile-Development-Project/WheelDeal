@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material.ripple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -45,8 +45,8 @@ fun BottomNavigationBar(
                 modifier = Modifier
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
-                        indication = rememberRipple(bounded = false),
-                    ) {
+                        indication = ripple(bounded = false)
+                    ){
                         selectedItem.value = item
                         onItemSelected(item)
                     },
