@@ -13,6 +13,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.wheeldeal.model.CarListing
 import com.example.wheeldeal.model.NotificationItem
 import com.example.wheeldeal.ui.components.BottomNavItem
 import com.example.wheeldeal.ui.components.BottomNavigationBar
@@ -20,6 +21,7 @@ import com.example.wheeldeal.ui.components.TopNavigationBar
 import com.example.wheeldeal.ui.navigation.Screen
 import com.example.wheeldeal.viewmodel.AuthViewModel
 import com.example.wheeldeal.viewmodel.BuyFilterViewModel
+import com.google.gson.Gson
 
 @Composable
 fun MainScreen(
@@ -70,7 +72,10 @@ fun MainScreen(
             ) {
                 composable(Screen.Home.route) { HomeScreen() }
                 composable(Screen.Buy.route) {
-                    BuyScreen(filterViewModel = filterViewModel)
+                    BuyScreen(
+                        navController = navController,
+                        filterViewModel = filterViewModel
+                    )
                 }
                 composable(Screen.Favorites.route) { FavoritesScreen() }
                 composable(Screen.Sell.route) { SellScreen() }
@@ -103,8 +108,11 @@ fun MainScreen(
                         viewModel = notificationViewModel
                     )
             }
-                composable("buy") {
-                    BuyScreen(filterViewModel = filterViewModel) }
+                composable("carDetails/{listingJson}") { backStackEntry ->
+                    val json = backStackEntry.arguments?.getString("listingJson") ?: ""
+                    val listing = Gson().fromJson(json, CarListing::class.java)
+                    CarDetailsScreen(listing = listing, navController = bottomNavController)
+                }
         }
     }
 }
