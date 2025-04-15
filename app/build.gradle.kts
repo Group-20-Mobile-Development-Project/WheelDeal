@@ -45,7 +45,7 @@ android {
 dependencies {
     // Jetpack Compose dependencies
     implementation(platform(libs.androidx.compose.bom))
-    implementation("androidx.compose.material:material:1.5.4")
+    implementation("androidx.compose.material:material:1.7.8")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -78,6 +78,8 @@ dependencies {
 
 
     implementation(libs.coil.compose)
+
+    implementation("com.google.code.gson:gson:2.10.1")
 
 
     // Google Maps dependency
