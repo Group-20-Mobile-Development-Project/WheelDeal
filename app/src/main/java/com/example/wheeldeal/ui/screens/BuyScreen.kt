@@ -165,7 +165,7 @@ fun BuyScreen(
                                     ).show()
                                 },
                                 onClick = {
-                                    val json = URLEncoder.encode(Gson().toJson(listing), StandardCharsets.UTF_8.toString())
+                                    val json = Gson().toJson(listing)
                                     navController.navigate(Screen.CarDetails.createRoute(json))
                                 }
                             )

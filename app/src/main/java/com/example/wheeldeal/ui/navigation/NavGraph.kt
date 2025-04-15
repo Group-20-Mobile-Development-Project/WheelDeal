@@ -1,17 +1,16 @@
 package com.example.wheeldeal.ui.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.*
 import androidx.navigation.compose.*
+import com.example.wheeldeal.model.CarListing
 import com.example.wheeldeal.ui.screens.*
 import com.example.wheeldeal.viewmodel.AuthViewModel
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.delay
-import com.example.wheeldeal.model.CarListing
 import com.google.gson.Gson
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
+import kotlinx.coroutines.delay
 
 @Composable
 fun NavGraph(
@@ -25,11 +24,7 @@ fun NavGraph(
         SplashScreen()
         LaunchedEffect(Unit) {
             delay(1200)
-            startDestination = if (auth.currentUser != null) {
-                Screen.Main.route
-            } else {
-                Screen.Landing.route
-            }
+            startDestination = if (auth.currentUser != null) Screen.Main.route else Screen.Landing.route
         }
         return
     }
@@ -58,19 +53,18 @@ fun NavGraph(
             )
         }
 
-        // ✅ This is your working CarDetails navigation
-        composable(
-            route = Screen.CarDetails.route,
-            arguments = listOf(
-                navArgument("carJson") {
-                    defaultValue = ""
-                }
-            )
-        ) { backStackEntry ->
-            val encodedJson = backStackEntry.arguments?.getString("carJson") ?: ""
-            val decodedJson = URLDecoder.decode(encodedJson, StandardCharsets.UTF_8.toString())
-            val listing = Gson().fromJson(decodedJson, CarListing::class.java)
+        composable(Screen.CarDetails.route) { backStackEntry ->
+            val json = backStackEntry.arguments?.getString("carJson") ?: ""
+            val decoded = Uri.decode(json)
+            val listing = Gson().fromJson(decoded, CarListing::class.java)
             CarDetailsScreen(listing = listing, navController = navController)
+        }
+
+        composable(Screen.CarOwnerDetails.route) { backStackEntry ->
+            val json = backStackEntry.arguments?.getString("listingJson") ?: ""
+            val decoded = Uri.decode(json)
+            val listing = Gson().fromJson(decoded, CarListing::class.java)
+            CarOwnerDetailsScreen(listing = listing)
         }
     }
 }
