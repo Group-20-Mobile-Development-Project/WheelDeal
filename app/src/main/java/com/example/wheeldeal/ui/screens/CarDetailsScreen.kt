@@ -1,5 +1,6 @@
 package com.example.wheeldeal.ui.screens
 
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,8 +15,6 @@ import androidx.compose.runtime.*
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.wheeldeal.model.CarListing
-import com.example.wheeldeal.ui.components.BottomNavItem
-import com.example.wheeldeal.ui.components.BottomNavigationBar
 import com.example.wheeldeal.ui.components.TopNavigationBar
 import com.example.wheeldeal.ui.theme.WhiteColor
 import androidx.compose.ui.*
@@ -26,7 +25,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavHostController
+import com.example.wheeldeal.ui.navigation.Screen
 import com.example.wheeldeal.ui.theme.PrimaryColor
+import com.google.gson.Gson
 
 @Composable
 fun CarDetailsScreen(
@@ -41,16 +42,6 @@ fun CarDetailsScreen(
             .fillMaxSize()
             .background(Color(0xFFFFD966))
     ) {
-        // Top Bar
-        TopNavigationBar(
-            onMessageClick = {
-                Toast.makeText(context, "Messages Clicked!", Toast.LENGTH_SHORT).show()
-            },
-            onNotificationClick = {
-                Toast.makeText(context, "Notifications Clicked!", Toast.LENGTH_SHORT).show()
-            }
-        )
-
         // Scrollable Content
         Column(
             modifier = Modifier
@@ -131,8 +122,11 @@ fun CarDetailsScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text("Description:", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                    Text(listing.description, fontSize = 14.sp, color = Color.Black)
-
+                    Text(
+                        listing.description,
+                        fontSize = 14.sp,
+                        color = Color.Black
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
@@ -162,32 +156,18 @@ fun CarDetailsScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
-                        Toast.makeText(context, "Contacting Owner...", Toast.LENGTH_SHORT).show()
+                        val json = Gson().toJson(listing)
+                        navController.navigate(Screen.CarOwnerDetails.createRoute(json))
                     },
+
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Contact Owner", color = Color.White)
+                    Text(text = "Contact Owner", color = Color.White)
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp)) // Add bottom padding for scroll
+            Spacer(modifier = Modifier.height(16.dp)) // bottom scroll padding
         }
-
-        // Bottom Navigation Bar
-        BottomNavigationBar(
-            items = listOf(
-                BottomNavItem("Home", Icons.Default.Home, "home"),
-                BottomNavItem("Buy", Icons.Default.ShoppingCart, "buy"),
-                BottomNavItem("Favorites", Icons.Default.Favorite, "favorites"),
-                BottomNavItem("Sell", Icons.Default.Add, "sell"),
-                BottomNavItem("Account", Icons.Default.Person, "account")
-            ),
-            onItemSelected = { selectedItem ->
-                navController.navigate(selectedItem.route) {
-                    popUpTo("home") { inclusive = false }
-                }
-            }
-        )
     }
 }
