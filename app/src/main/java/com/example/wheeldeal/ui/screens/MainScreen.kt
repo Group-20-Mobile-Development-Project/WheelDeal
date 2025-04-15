@@ -26,9 +26,9 @@ import com.google.gson.Gson
 @Composable
 fun MainScreen(
     viewModel: AuthViewModel = viewModel(),
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController
 ) {
-    val bottomNavController = rememberNavController()
+    val navController = rememberNavController()
     val userData by viewModel.userData.collectAsState()
 
     val bottomNavItems = listOf(
@@ -46,14 +46,14 @@ fun MainScreen(
         topBar = {
             TopNavigationBar(
                 onMessageClick = { /* handle messages */ },
-                onNotificationClick = { bottomNavController.navigate("notifications") }
+                onNotificationClick = { navController.navigate("notifications") }
             )
         },
         bottomBar = {
             BottomNavigationBar(
                 items = bottomNavItems,
                 onItemSelected = { selectedItem ->
-                    bottomNavController.navigate(selectedItem.route) {
+                    navController.navigate(selectedItem.route) {
                         popUpTo(Screen.Home.route) { inclusive = false }
                     }
                 }
@@ -67,7 +67,7 @@ fun MainScreen(
             contentAlignment = Alignment.Center
         ) {
             NavHost(
-                navController = bottomNavController,
+                navController = navController,
                 startDestination = Screen.Home.route
             ) {
                 composable(Screen.Home.route) { HomeScreen() }
@@ -84,7 +84,7 @@ fun MainScreen(
                     if (userData != null) {
                         ProfileScreen(
                             onBackToMain = {
-                                bottomNavController.navigate(Screen.Account.route) {
+                                navController.navigate(Screen.Account.route) {
                                     popUpTo(Screen.Account.route) { inclusive = true }
                                 }
                             },
@@ -94,7 +94,7 @@ fun MainScreen(
                         AccountScreen(
                             viewModel = viewModel,
                             onLoginSuccess = {
-                                bottomNavController.navigate(Screen.Account.route) {
+                                navController.navigate(Screen.Account.route) {
                                     popUpTo(Screen.Account.route) { inclusive = true }
                                 }
                             }
@@ -104,16 +104,22 @@ fun MainScreen(
 
                 composable("notifications") {
                     NotificationScreen(
-                        navController = bottomNavController,
+                        navController = navController,
                         viewModel = notificationViewModel
-                    )
-            }
+                    ) }
+
                 composable("carDetails/{listingJson}") { backStackEntry ->
                     val json = backStackEntry.arguments?.getString("listingJson") ?: ""
                     val listing = Gson().fromJson(json, CarListing::class.java)
-                    CarDetailsScreen(listing = listing, navController = bottomNavController)
+                    CarDetailsScreen(listing = listing, navController = navController)
                 }
-        }
+
+                composable("carOwnerDetails/{listingJson}") { backStackEntry ->
+                    val json = backStackEntry.arguments?.getString("listingJson") ?: ""
+                    val listing = Gson().fromJson(json, CarListing::class.java)
+                    CarOwnerDetailsScreen(listing = listing)
+                }
+            }
     }
 }
 }
