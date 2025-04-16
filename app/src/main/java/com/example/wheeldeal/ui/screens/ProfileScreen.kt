@@ -1,5 +1,6 @@
 package com.example.wheeldeal.ui.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -47,6 +48,8 @@ fun ProfileScreen(
 
     val showLogoutDialog = remember { mutableStateOf(false) }
     val showDeleteDialog = remember { mutableStateOf(false) }
+    val showFeedbackDialog = remember { mutableStateOf(false) }
+
 
     if (user == null) {
         Box(
@@ -117,6 +120,13 @@ fun ProfileScreen(
             InfoCard(text = "Delete Account", icon = Icons.Default.Delete) {
                 showDeleteDialog.value = true
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            InfoCard(text = "Leave a message", icon = Icons.Default.Email) {
+                showFeedbackDialog.value = true
+            }
+
 
             // -------- Confirmation Dialogs --------
             if (showLogoutDialog.value) {
@@ -204,6 +214,33 @@ fun ProfileScreen(
                 )
             }
 
+            if (showFeedbackDialog.value) {
+                AlertDialog(
+                    onDismissRequest = { showFeedbackDialog.value = false },
+                    confirmButton = {
+                        TextButton(onClick = { showFeedbackDialog.value = false }) {
+                            Text("Close", color = Color.Gray)
+                        }
+                    },
+                    title = {
+                        Text(
+                            "Send Feedback",
+                            style = AppTypography.headlineLarge.copy(fontSize = 20.sp),
+                            color = Color(0xFF003049)
+                        )
+                    },
+                    text = {
+                        FeedbackDialogContent(onSubmit = {
+                            // Handle submission
+                            showFeedbackDialog.value = false
+                            Toast.makeText(context, "Thank you for your feedback!", Toast.LENGTH_SHORT).show()
+                        })
+                    },
+                    containerColor = Color.White,
+                    shape = RoundedCornerShape(16.dp)
+                )
+            }
+
         }
     }
 }
@@ -239,5 +276,33 @@ fun InfoCard(
             contentDescription = null,
             tint = Color(0xFF143D59)
         )
+    }
+}
+
+@Composable
+fun FeedbackDialogContent(onSubmit: () -> Unit) {
+    var feedbackText by remember { mutableStateOf("") }
+
+    Column {
+        OutlinedTextField(
+            value = feedbackText,
+            onValueChange = { feedbackText = it },
+            label = { Text("Your message") },
+            placeholder = { Text("Type your feedback...") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = {
+                Log.d("Feedback", "Submitted: $feedbackText")
+                feedbackText = ""
+                onSubmit()
+            },
+            shape = RoundedCornerShape(24.dp)
+        ) {
+            Text("Submit")
+        }
     }
 }
