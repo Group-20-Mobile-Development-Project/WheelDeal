@@ -9,9 +9,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.ContactMail
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 // import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -49,6 +51,7 @@ fun ProfileScreen(
     val showLogoutDialog = remember { mutableStateOf(false) }
     val showDeleteDialog = remember { mutableStateOf(false) }
     val showFeedbackDialog = remember { mutableStateOf(false) }
+    val showContactUsDialog = remember { mutableStateOf(false) }
 
 
     if (user == null) {
@@ -125,6 +128,17 @@ fun ProfileScreen(
 
             InfoCard(text = "Leave a message", icon = Icons.Default.Email) {
                 showFeedbackDialog.value = true
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            InfoCard(text = "Contact Us", icon = Icons.Default.Phone) { // New InfoCard for Contact Us
+                showContactUsDialog.value = true
+            }
+
+            // -------- Contact Us Dialog --------
+            if (showContactUsDialog.value) {
+                ContactUsDialog(onDismiss = { showContactUsDialog.value = false })
             }
 
 
@@ -305,4 +319,47 @@ fun FeedbackDialogContent(onSubmit: () -> Unit) {
             Text("Submit")
         }
     }
+}
+
+
+@Composable
+fun ContactUsDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close", color = Color.Gray)
+            }
+        },
+        title = {
+            Text(
+                "Contact Us",
+                style = AppTypography.headlineLarge.copy(fontSize = 20.sp),
+                color = Color(0xFF003049)
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    "For any inquiries, please reach out to us at:",
+                    style = AppTypography.bodyMedium,
+                    color = Color.DarkGray
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Email: support@wheeldeal.com",
+                    style = AppTypography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    color = Color(0xFF003049)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "Phone: +358444333222",
+                    style = AppTypography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    color = Color(0xFF003049)
+                )
+            }
+        },
+        containerColor = Color.White,
+        shape = RoundedCornerShape(16.dp)
+    )
 }
