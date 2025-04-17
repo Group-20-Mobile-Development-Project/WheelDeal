@@ -1,5 +1,6 @@
 package com.example.wheeldeal.ui.screens
 
+import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -28,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.net.Uri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.wheeldeal.ui.theme.AppTypography
 import com.example.wheeldeal.ui.theme.PrimaryColor
@@ -324,6 +326,8 @@ fun FeedbackDialogContent(onSubmit: () -> Unit) {
 
 @Composable
 fun ContactUsDialog(onDismiss: () -> Unit) {
+    val context = LocalContext.current
+
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
@@ -355,7 +359,13 @@ fun ContactUsDialog(onDismiss: () -> Unit) {
                 Text(
                     "Phone: +358444333222",
                     style = AppTypography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color(0xFF003049)
+                    color = Color(0xFF003049),
+                    modifier = Modifier.clickable {
+                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                            data = Uri.parse("tel:+358444333222")
+                        }
+                        context.startActivity(intent)
+                    }
                 )
             }
         },
