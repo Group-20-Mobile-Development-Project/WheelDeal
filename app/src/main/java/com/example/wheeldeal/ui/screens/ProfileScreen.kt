@@ -356,17 +356,6 @@ fun ContactUsDialog(onDismiss: () -> Unit) {
                     color = Color(0xFF003049)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    "Phone: +358444333222",
-                    style = AppTypography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color(0xFF003049),
-                    modifier = Modifier.clickable {
-                        val intent = Intent(Intent.ACTION_DIAL).apply {
-                            data = Uri.parse("tel:+358333222111")
-                        }
-                        context.startActivity(intent)
-                    }
-                )
             }
         },
         containerColor = Color.White,

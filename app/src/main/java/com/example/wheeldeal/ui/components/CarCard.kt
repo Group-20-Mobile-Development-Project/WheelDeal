@@ -46,7 +46,7 @@ fun CarCard(
 
     Card(
         modifier = Modifier
-            .width(200.dp)
+            .width(180.dp)
             .padding(8.dp),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(6.dp)
