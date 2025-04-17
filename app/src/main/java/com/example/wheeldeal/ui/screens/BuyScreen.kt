@@ -35,8 +35,10 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import com.example.wheeldeal.ui.navigation.Screen
 import androidx.compose.foundation.clickable
-
-
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import com.example.wheeldeal.ui.components.CarCard
 
 @Composable
 fun BuyScreen(
@@ -129,7 +131,6 @@ fun BuyScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
         }
-
         when (state) {
             is ListingState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -151,24 +152,36 @@ fun BuyScreen(
                         Text("No listings found.")
                     }
                 } else {
-                    LazyColumn {
-                        items(filtered) { listing ->
-                            ListingCard(
-                                listing = listing,
-                                isFavorite = favoriteIds.contains(listing.id),
-                                onToggleFavorite = {
-                                    favoritesViewModel.toggleFavorite(listing.id)
-                                    Toast.makeText(
-                                        context,
-                                        if (favoriteIds.contains(listing.id)) "Removed from favorites" else "Added to favorites",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                },
-                                onClick = {
-                                    val json = Gson().toJson(listing)
-                                    navController.navigate(Screen.CarDetails.createRoute(json))
-                                }
-                            )
+                    Column {
+                        Spacer(modifier = Modifier.height(24.dp))
+
+
+
+                        // Vertical scrolling with two cards in each horizontal row
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(2),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(bottom = 16.dp)
+                        ) {
+                            items(filtered) { listing ->
+                                CarCard(
+                                    listing = listing,
+                                    isFavorite = favoriteIds.contains(listing.id),
+                                    onToggleFavorite = {
+                                        favoritesViewModel.toggleFavorite(listing.id)
+                                        Toast.makeText(
+                                            context,
+                                            if (favoriteIds.contains(listing.id)) "Removed from favorites" else "Added to favorites",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    },
+                                    onClick = {
+                                        val json = Gson().toJson(listing)
+                                        navController.navigate(Screen.CarDetails.createRoute(json))
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -176,6 +189,7 @@ fun BuyScreen(
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,6 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import com.example.wheeldeal.ui.navigation.Screen
+import kotlinx.coroutines.delay
 
 @Composable
 fun SuccessStatusScreen(
@@ -110,6 +114,26 @@ fun SuccessStatusScreen(
         }
     }
 }
+@Composable
+fun SuccessStatusScreen(
+    navController: NavController,
+    title: String
+) {
+    // Run a side effect that waits 4 seconds and navigates back to SellScreen
+    LaunchedEffect(Unit) {
+        delay(4000)
+        navController.popBackStack() // OR: navController.navigate(Screen.Sell.route)
+    }
+
+    // Reuse the actual UI
+    SuccessStatusScreen(
+        title = title,
+        onCloseClick = {
+            navController.popBackStack()
+        }
+    )
+}
+
 
 @Preview(showSystemUi = true, showBackground = true)
 @Composable

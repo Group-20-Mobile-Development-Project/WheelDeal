@@ -11,6 +11,9 @@ import com.example.wheeldeal.viewmodel.AuthViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import kotlinx.coroutines.delay
+import com.example.wheeldeal.ui.components.SuccessStatusScreen
+
+
 
 @Composable
 fun NavGraph(
@@ -41,6 +44,14 @@ fun NavGraph(
         composable(Screen.Main.route) {
             MainScreen(viewModel = viewModel, navController = navController)
         }
+        composable("success_screen") {
+            SuccessStatusScreen(
+                title = "Listed",
+                onCloseClick = {
+                    navController.popBackStack() // This lets user go back if they tap "X"
+                }
+            )
+        }
 
         composable(Screen.Profile.route) {
             ProfileScreen(
@@ -68,3 +79,5 @@ fun NavGraph(
         }
     }
 }
+
+
