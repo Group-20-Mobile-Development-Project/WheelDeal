@@ -362,7 +362,7 @@ fun ContactUsDialog(onDismiss: () -> Unit) {
                     color = Color(0xFF003049),
                     modifier = Modifier.clickable {
                         val intent = Intent(Intent.ACTION_DIAL).apply {
-                            data = Uri.parse("tel:+358444333222")
+                            data = Uri.parse("tel:+358333222111")
                         }
                         context.startActivity(intent)
                     }
