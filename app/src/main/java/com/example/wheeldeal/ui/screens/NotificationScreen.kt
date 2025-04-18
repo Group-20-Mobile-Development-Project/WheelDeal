@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,13 +44,26 @@ fun NotificationScreen(
     ) {
         Spacer(modifier = Modifier.height(30.dp))
 
-        Text(
-            text = "Notifications",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            color = DarkBlue,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Notifications",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = DarkBlue
+            )
+            IconButton(onClick = { viewModel.deleteAllNotifications() }) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete All",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -68,7 +82,8 @@ fun NotificationScreen(
                 ExpandableNotificationCard(
                     notification = notification,
                     navController = navController,
-                    onMarkAsRead = { viewModel.markAsRead(it) }
+                    onMarkAsRead = { viewModel.markAsRead(it) },
+                    onDelete = { viewModel.deleteNotification(it) }
                 )
             }
         }
@@ -79,7 +94,8 @@ fun NotificationScreen(
 fun ExpandableNotificationCard(
     notification: NotificationItem,
     navController: NavController,
-    onMarkAsRead: (NotificationItem) -> Unit
+    onMarkAsRead: (NotificationItem) -> Unit,
+    onDelete: (NotificationItem) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
@@ -105,6 +121,13 @@ fun ExpandableNotificationCard(
                 color = Color.White,
                 modifier = Modifier.weight(1f)
             )
+            IconButton(onClick = { onDelete(notification) }) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete Notification",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
             IconButton(onClick = { isExpanded = !isExpanded }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
