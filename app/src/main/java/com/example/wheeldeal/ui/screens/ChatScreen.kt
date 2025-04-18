@@ -33,7 +33,7 @@ fun ChatScreen(
 
     // Listen to messages in real-time
     LaunchedEffect(chatId) {
-        chatViewModel.listenToMessages(chatId)
+        chatViewModel.loadChat(receiverId)
     }
 
     Column(
