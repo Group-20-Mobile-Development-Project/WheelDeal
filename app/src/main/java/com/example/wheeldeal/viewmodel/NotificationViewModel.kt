@@ -35,8 +35,23 @@ class NotificationViewModel : ViewModel() {
             if (it.id == notification.id) it.copy(isRead = true) else it
         }
 
-
         db.collection("notifications").document(notification.id)
             .update("isRead", true)
+    }
+
+    fun deleteNotification(notification: NotificationItem) {
+        _notifications.value = _notifications.value.filter { it.id != notification.id }
+
+        db.collection("notifications").document(notification.id)
+            .delete()
+    }
+
+    fun deleteAllNotifications() {
+        _notifications.value = emptyList()
+
+        db.collection("notifications").get()
+            .addOnSuccessListener { snapshot ->
+                snapshot.documents.forEach { it.reference.delete() }
+            }
     }
 }
