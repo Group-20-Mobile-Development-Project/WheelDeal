@@ -1,9 +1,10 @@
 package com.example.wheeldeal.model
 
 data class NotificationItem(
-    val id: String = "",
-    val title: String = "",
-    val details: String = ""
+    val id: String,
+    val title: String,
+    val details: String,
+    var isRead: Boolean = false
 )
 
 

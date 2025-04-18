@@ -1,12 +1,10 @@
 package com.example.wheeldeal.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.wheeldeal.model.NotificationItem
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 class NotificationViewModel : ViewModel() {
     private val _notifications = MutableStateFlow<List<NotificationItem>>(emptyList())
@@ -24,10 +22,21 @@ class NotificationViewModel : ViewModel() {
                 val notificationList = snapshot?.documents?.mapNotNull { doc ->
                     val title = doc.getString("title") ?: return@mapNotNull null
                     val details = doc.getString("details") ?: ""
-                    NotificationItem(id = doc.id, title = title, details = details)
+                    val isRead = doc.getBoolean("isRead") ?: false
+                    NotificationItem(id = doc.id, title = title, details = details, isRead = isRead)
                 } ?: emptyList()
 
                 _notifications.value = notificationList
             }
+    }
+
+    fun markAsRead(notification: NotificationItem) {
+        _notifications.value = _notifications.value.map {
+            if (it.id == notification.id) it.copy(isRead = true) else it
+        }
+
+
+        db.collection("notifications").document(notification.id)
+            .update("isRead", true)
     }
 }
