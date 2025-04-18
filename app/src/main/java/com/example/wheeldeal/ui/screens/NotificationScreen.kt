@@ -8,7 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -65,7 +65,11 @@ fun NotificationScreen(
 
         LazyColumn {
             items(notifications) { notification ->
-                ExpandableNotificationCard(notification, navController)
+                ExpandableNotificationCard(
+                    notification = notification,
+                    navController = navController,
+                    onMarkAsRead = { viewModel.markAsRead(it) }
+                )
             }
         }
     }
@@ -74,7 +78,8 @@ fun NotificationScreen(
 @Composable
 fun ExpandableNotificationCard(
     notification: NotificationItem,
-    navController: NavController
+    navController: NavController,
+    onMarkAsRead: (NotificationItem) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
@@ -83,8 +88,11 @@ fun ExpandableNotificationCard(
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(DarkBlue)
+            .background(if (notification.isRead) Color.Gray else DarkBlue)
             .clickable {
+                if (!notification.isRead) {
+                    onMarkAsRead(notification)
+                }
                 navController.navigate("buy")
             }
             .padding(16.dp)
@@ -99,7 +107,7 @@ fun ExpandableNotificationCard(
             )
             IconButton(onClick = { isExpanded = !isExpanded }) {
                 Icon(
-                    imageVector = Icons.Default.ArrowForward,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = "Expand",
                     tint = Color.White
                 )
