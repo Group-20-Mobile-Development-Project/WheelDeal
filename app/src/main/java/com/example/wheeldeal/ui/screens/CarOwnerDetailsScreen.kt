@@ -26,9 +26,23 @@ import com.example.wheeldeal.model.CarListing
 import com.example.wheeldeal.ui.theme.*
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import androidx.navigation.NavHostController
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import com.example.wheeldeal.repository.ChatRepository
+import com.example.wheeldeal.ui.navigation.Screen
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun CarOwnerDetailsScreen(listing: CarListing) {
+fun CarOwnerDetailsScreen(
+    listing: CarListing,
+    navController: NavHostController
+) {
+
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+    val isOwnListing = listing.userId == currentUserId
+    val scope = rememberCoroutineScope()
+
     var email by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("Car Owner") }
 
@@ -118,7 +132,15 @@ fun CarOwnerDetailsScreen(listing: CarListing) {
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Button(
-                    onClick = { /* TODO: Chat */ },
+                    onClick = {
+                        scope.launch {
+                            runCatching {
+                                val chatId = ChatRepository().createOrGetChatId(listing.userId)
+                                navController.navigate(Screen.Chat.createRoute(chatId, listing.userId))
+                            }
+                        }
+                    },
+                    enabled = !isOwnListing,
                     modifier = Modifier.weight(1f).height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = FontIconColor),
                     shape = RoundedCornerShape(24.dp)
@@ -141,6 +163,14 @@ fun CarOwnerDetailsScreen(listing: CarListing) {
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Call", fontWeight = FontWeight.Bold)
                 }
+            }
+            if (isOwnListing) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "This is your listing — you can't chat with yourself!",
+                    color = Color.Gray,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                )
             }
         }
     }

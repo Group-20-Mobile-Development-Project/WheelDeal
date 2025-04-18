@@ -19,4 +19,9 @@ sealed class Screen(val route: String) {
     object CarOwnerDetails : Screen("carOwnerDetails/{listingJson}") {
         fun createRoute(listingJson: String) = "carOwnerDetails/${Uri.encode(listingJson)}"
     }
+
+    object Chat : Screen("chat/{chatId}/{receiverId}") {
+              fun createRoute(chatId: String, receiverId: String) =
+                    "chat/$chatId/$receiverId"
+            }
 }
