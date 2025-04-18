@@ -44,14 +44,6 @@ fun NavGraph(
         composable(Screen.Main.route) {
             MainScreen(viewModel = viewModel, navController = navController)
         }
-        composable("success_screen") {
-            SuccessStatusScreen(
-                title = "Listed",
-                onCloseClick = {
-                    navController.popBackStack() // This lets user go back if they tap "X"
-                }
-            )
-        }
 
         composable(Screen.Profile.route) {
             ProfileScreen(
@@ -75,7 +67,8 @@ fun NavGraph(
             val json = backStackEntry.arguments?.getString("listingJson") ?: ""
             val decoded = Uri.decode(json)
             val listing = Gson().fromJson(decoded, CarListing::class.java)
-            CarOwnerDetailsScreen(listing = listing)
+            CarOwnerDetailsScreen(listing = listing,
+                navController = navController)
         }
     }
 }
