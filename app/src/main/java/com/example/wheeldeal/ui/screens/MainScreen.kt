@@ -28,8 +28,8 @@ fun MainScreen(
     viewModel: AuthViewModel = viewModel(),
     navController: NavHostController
 ) {
-    val navController = rememberNavController()
     val userData by viewModel.userData.collectAsState()
+    val innerNav = rememberNavController()
 
     val bottomNavItems = listOf(
         BottomNavItem("Home", Icons.Default.Home, Screen.Home.route),
@@ -46,16 +46,17 @@ fun MainScreen(
         topBar = {
             TopNavigationBar(
                 onMessageClick = { /* handle messages */ },
-                onNotificationClick = { navController.navigate("notifications") }
+                onNotificationClick = { innerNav.navigate("notifications") }
             )
         },
         bottomBar = {
             BottomNavigationBar(
                 items = bottomNavItems,
                 onItemSelected = { selectedItem ->
-                    navController.navigate(selectedItem.route) {
-                        popUpTo(Screen.Home.route) { inclusive = false }
-                    }
+                        innerNav.navigate(selectedItem.route) {
+                            popUpTo(Screen.Home.route) { inclusive = false }
+                        }
+
                 }
             )
         }
@@ -67,13 +68,13 @@ fun MainScreen(
             contentAlignment = Alignment.Center
         ) {
             NavHost(
-                navController = navController,
+                navController = innerNav,
                 startDestination = Screen.Home.route
             ) {
                 composable(Screen.Home.route) { HomeScreen() }
                 composable(Screen.Buy.route) {
                     BuyScreen(
-                        navController = navController,
+                        navController = innerNav,
                         filterViewModel = filterViewModel
                     )
                 }
@@ -84,7 +85,7 @@ fun MainScreen(
                     if (userData != null) {
                         ProfileScreen(
                             onBackToMain = {
-                                navController.navigate(Screen.Account.route) {
+                                innerNav.navigate(Screen.Account.route) {
                                     popUpTo(Screen.Account.route) { inclusive = true }
                                 }
                             },
@@ -94,7 +95,7 @@ fun MainScreen(
                         AccountScreen(
                             viewModel = viewModel,
                             onLoginSuccess = {
-                                navController.navigate(Screen.Account.route) {
+                                innerNav.navigate(Screen.Account.route) {
                                     popUpTo(Screen.Account.route) { inclusive = true }
                                 }
                             }
@@ -111,13 +112,20 @@ fun MainScreen(
                 composable("carDetails/{listingJson}") { backStackEntry ->
                     val json = backStackEntry.arguments?.getString("listingJson") ?: ""
                     val listing = Gson().fromJson(json, CarListing::class.java)
-                    CarDetailsScreen(listing = listing, navController = navController)
+                    CarDetailsScreen(listing = listing, navController = innerNav)
                 }
 
                 composable("carOwnerDetails/{listingJson}") { backStackEntry ->
                     val json = backStackEntry.arguments?.getString("listingJson") ?: ""
                     val listing = Gson().fromJson(json, CarListing::class.java)
-                    CarOwnerDetailsScreen(listing = listing)
+                    CarOwnerDetailsScreen(
+                         listing       = listing,
+                          navController = innerNav)
+                }
+                composable(Screen.Chat.route) { backStackEntry ->
+                    val chatId     = backStackEntry.arguments?.getString("chatId")     ?: ""
+                    val receiverId = backStackEntry.arguments?.getString("receiverId") ?: ""
+                    ChatScreen(chatId = chatId, receiverId = receiverId)
                 }
             }
     }
