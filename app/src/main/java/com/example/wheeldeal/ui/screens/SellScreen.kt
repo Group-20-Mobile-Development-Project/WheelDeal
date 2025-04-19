@@ -35,10 +35,19 @@ import androidx.compose.ui.unit.sp
 import com.example.wheeldeal.viewmodel.ListingState
 import com.example.wheeldeal.viewmodel.ListingViewModel
 import com.google.firebase.auth.FirebaseAuth
-
-//  import android.net.Uri
-//  import androidx.activity.compose.rememberLauncherForActivityResult
-//  import androidx.activity.result.contract.ActivityResultContracts
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context
+import android.location.Geocoder
+import android.location.Location
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import java.util.Locale
+import android.content.Intent
+import android.location.LocationManager
+import android.provider.Settings
 
 
 
@@ -46,6 +55,40 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun SellScreen(viewModel: ListingViewModel = viewModel()) {
     val context = LocalContext.current
+    var location by remember { mutableStateOf("") }
+    val fusedLocationClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Check if location is enabled
+            val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                getUserLocation(fusedLocationClient, context) { address ->
+                    location = address
+                    Toast.makeText(context, "Location: $address", Toast.LENGTH_LONG).show()
+                }
+            } else {
+                Toast.makeText(
+                    context,
+                    "Please enable GPS location services",
+                    Toast.LENGTH_LONG
+                ).show()
+                // Optionally open location settings
+                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            }
+        } else {
+            Toast.makeText(
+                context,
+                "Location permission is required to detect your location",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
 
     val listingState by viewModel.listingState.collectAsState()
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
@@ -73,7 +116,7 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
     var seats by remember { mutableStateOf("") }
     var lastInspection by remember { mutableStateOf("") }
     var ownership by remember { mutableStateOf("") }
-    var location by remember { mutableStateOf("") }
+
     var price by remember { mutableStateOf("") }
     var negotiable by remember { mutableStateOf(false) }
     var photoUrl by remember { mutableStateOf("") }
@@ -256,7 +299,25 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                         // Ownership
                         DropdownField("Ownership", ownerships, ownership) { ownership = it }
                         // Location
-                        InputField("Location", location) { location = it }
+
+
+                        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                            // Manual location input
+                            InputField("Location", location) { location = it }
+
+                            // Detect location button
+                            Button(
+                                onClick = {
+                                    locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = FontIconColor),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Use My Current Location", color = WhiteColor)
+                            }
+                        }
+
+
                         // Price
                         InputField("Price", price, KeyboardType.Number) { price = it }
                         // Negotiable
@@ -459,5 +520,79 @@ fun DropdownField(
                 )
             }
         }
+    }
+}
+
+@SuppressLint("MissingPermission")
+fun getUserLocation(
+    fusedLocationClient: FusedLocationProviderClient,
+    context: Context,
+    onAddressFound: (String) -> Unit
+) {
+    // Create location request for fresh location
+    val locationRequest = com.google.android.gms.location.LocationRequest.create().apply {
+        priority = com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
+        interval = 10000
+        fastestInterval = 5000
+        numUpdates = 1
+    }
+
+    val locationCallback = object : com.google.android.gms.location.LocationCallback() {
+        override fun onLocationResult(locationResult: com.google.android.gms.location.LocationResult) {
+            fusedLocationClient.removeLocationUpdates(this)
+            locationResult.lastLocation?.let { location ->
+                getAddressFromLocation(context, location, onAddressFound)
+            } ?: run {
+                onAddressFound("Unable to get current location")
+            }
+        }
+    }
+
+    // First try to get last location quickly
+    fusedLocationClient.lastLocation.addOnSuccessListener { lastLocation ->
+        if (lastLocation != null && isLocationFresh(lastLocation)) {
+            getAddressFromLocation(context, lastLocation, onAddressFound)
+        } else {
+            // If no recent last location, request fresh updates
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                android.os.Looper.getMainLooper()
+            )
+        }
+    }.addOnFailureListener {
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            android.os.Looper.getMainLooper()
+        )
+    }
+}
+
+private fun isLocationFresh(location: Location): Boolean {
+    return System.currentTimeMillis() - location.time < 1000 * 60 * 2 // 2 minutes old
+}
+
+fun getAddressFromLocation(context: Context, location: Location, onAddressFound: (String) -> Unit) {
+    try {
+        val geocoder = Geocoder(context, Locale.getDefault())
+        val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+
+        if (!addresses.isNullOrEmpty()) {
+            val address = addresses[0]
+            // Build string with just city and country
+            val cityAndCountry = buildString {
+                address.locality?.let { append(it) }  // City
+                if (address.locality != null && address.countryName != null) {
+                    append(", ")
+                }
+                address.countryName?.let { append(it) }  // Country
+            }
+            onAddressFound(cityAndCountry.ifEmpty { "Unknown location" })
+        } else {
+            onAddressFound("Unknown location")
+        }
+    } catch (e: Exception) {
+        onAddressFound("Could not get address")
     }
 }

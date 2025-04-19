@@ -62,6 +62,13 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.playservices.location)
+    implementation(libs.accompanist.permissions)
+
+
+
+
+
 
 
     implementation(libs.ui.tooling.preview)
