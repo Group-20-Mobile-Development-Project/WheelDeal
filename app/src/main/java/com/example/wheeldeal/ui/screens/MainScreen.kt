@@ -45,7 +45,7 @@ fun MainScreen(
     Scaffold(
         topBar = {
             TopNavigationBar(
-                onMessageClick = { /* handle messages */ },
+                onMessageClick = { innerNav.navigate(Screen.ChatList.route) },
                 onNotificationClick = { innerNav.navigate("notifications") }
             )
         },
@@ -122,10 +122,15 @@ fun MainScreen(
                          listing       = listing,
                           navController = innerNav)
                 }
+
+                composable(Screen.ChatList.route) {
+                    ChatListScreen(navController = innerNav)
+                }
+
                 composable(Screen.Chat.route) { backStackEntry ->
                     val chatId     = backStackEntry.arguments?.getString("chatId")     ?: ""
                     val receiverId = backStackEntry.arguments?.getString("receiverId") ?: ""
-                    ChatScreen(chatId = chatId, receiverId = receiverId)
+                    ChatScreen(chatId = chatId, receiverId = receiverId,navController = innerNav )
                 }
             }
     }
