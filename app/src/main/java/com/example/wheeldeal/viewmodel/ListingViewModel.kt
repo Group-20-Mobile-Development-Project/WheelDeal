@@ -21,6 +21,9 @@ class ListingViewModel(
     private val _listingState = MutableStateFlow<ListingState>(ListingState.Loading)
     val listingState: StateFlow<ListingState> = _listingState
 
+    private val _nearbyListings = MutableStateFlow<List<CarListing>>(emptyList())
+    val nearbyListings: StateFlow<List<CarListing>> = _nearbyListings
+
     init {
         fetchListings()
     }
@@ -35,6 +38,18 @@ class ListingViewModel(
             )
         }
     }
+
+    fun loadNearbyListings(city: String) {
+        viewModelScope.launch {
+            val result = repository.getListingsByCity(city)
+            result.onSuccess { listings ->
+                _nearbyListings.value = listings
+            }.onFailure {
+                _nearbyListings.value = emptyList()
+            }
+        }
+    }
+
     fun addListing(listing: CarListing, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
             val result = repository.addListing(listing)
@@ -45,7 +60,6 @@ class ListingViewModel(
             }
         }
     }
-
 
     fun deleteListing(listingId: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
@@ -62,7 +76,4 @@ class ListingViewModel(
             fetchListings()
         }
     }
-
-
-
 }

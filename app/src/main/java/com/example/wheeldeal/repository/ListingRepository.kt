@@ -36,11 +36,22 @@ class ListingRepository {
         }
     }
 
-    // update/delete
+    suspend fun getListingsByCity(city: String): Result<List<CarListing>> {
+        return try {
+            val snapshot = listingsCollection
+                .whereEqualTo("city", city)
+                .get()
+                .await()
+            val listings = snapshot.documents.mapNotNull { it.toObject(CarListing::class.java) }
+            Result.success(listings)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun deleteListing(listingId: String): Result<Void?> {
         return try {
-            FirebaseFirestore.getInstance().collection("listings")
-                .document(listingId).delete().await()
+            listingsCollection.document(listingId).delete().await()
             Result.success(null)
         } catch (e: Exception) {
             Result.failure(e)
@@ -49,16 +60,16 @@ class ListingRepository {
 
     suspend fun updateListing(listing: CarListing): Result<Void?> {
         return try {
-            FirebaseFirestore.getInstance().collection("listings")
-                .document(listing.id).set(listing).await()
+            listingsCollection.document(listing.id).set(listing).await()
             Result.success(null)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
     suspend fun sendNewListingNotification(listing: CarListing): Result<Void?> {
         return try {
-            val notificationsCollection = FirebaseFirestore.getInstance().collection("notifications")
+            val notificationsCollection = firestore.collection("notifications")
             val notificationData = mapOf(
                 "title" to "New Car Listed: ${listing.brand} ${listing.model}",
                 "message" to "${listing.brand} ${listing.model} is now available for \$${listing.price}.",
@@ -72,5 +83,3 @@ class ListingRepository {
         }
     }
 }
-
-

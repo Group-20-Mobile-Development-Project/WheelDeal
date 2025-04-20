@@ -71,7 +71,13 @@ fun MainScreen(
                 navController = innerNav,
                 startDestination = Screen.Home.route
             ) {
-                composable(Screen.Home.route) { HomeScreen() }
+
+                composable(Screen.Home.route) {
+                    HomeScreen(
+
+                        innerNav = innerNav
+                    )
+                }
                 composable(Screen.Buy.route) {
                     BuyScreen(
                         navController = innerNav,

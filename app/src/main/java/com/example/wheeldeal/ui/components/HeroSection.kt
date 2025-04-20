@@ -18,11 +18,13 @@ import androidx.compose.ui.unit.sp
 
 @Preview
 @Composable
-fun HeroSection() {
+fun HeroSection(
+    modifier: Modifier = Modifier  // Add this parameter
+) {
     Box(
-        modifier = Modifier
+        modifier = modifier  // Use the passed modifier first
             .fillMaxWidth()
-            .padding(horizontal = 16.dp) // Adds spacing on both sides
+            .padding(horizontal = 16.dp)
             .height(120.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -31,16 +33,15 @@ fun HeroSection() {
                 .fillMaxWidth()
                 .height(120.dp)
                 .background(
-                    brush = Brush.linearGradient( // Smooth Gradient
+                    brush = Brush.linearGradient(
                         colors = listOf(
-                            Color(0xFFFFC107),  // Bright Yellow
-                            Color(0xFFFFA000)   // Darker Yellow/Orange
+                            Color(0xFFFFC107),
+                            Color(0xFFFFA000)
                         )
                     ),
                     shape = RoundedCornerShape(16.dp)
                 )
         ) {
-            // Adds a subtle wavy texture
             val path = androidx.compose.ui.graphics.Path().apply {
                 moveTo(size.width * 0.6f, size.height * 0.1f)
                 quadraticTo(
@@ -56,7 +57,7 @@ fun HeroSection() {
                 path = path,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color.White.copy(alpha = 0.2f), // Light wave effect
+                        Color.White.copy(alpha = 0.2f),
                         Color.Transparent
                     )
                 )
@@ -73,7 +74,7 @@ fun HeroSection() {
                 text = "Create\nA Car Listing",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF0E2F56) // Dark blue text
+                color = Color(0xFF0E2F56)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -81,21 +82,27 @@ fun HeroSection() {
             Box(
                 modifier = Modifier
                     .background(
-                        color = Color(0xFF0E2F56), // Dark Blue color
+                        color = Color(0xFF0E2F56),
                         shape = RoundedCornerShape(20.dp)
                     )
-                    .padding(horizontal = 16.dp, vertical = 8.dp) // Proper padding to avoid text cutting
-                    .wrapContentSize(Alignment.TopCenter) // Ensure text is aligned at the top
-                    .height(50.dp) // Ensure the height is enough to fit the text properly
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .wrapContentSize(Alignment.TopCenter)
+                    .height(50.dp)
             ) {
                 Text(
                     text = "Wheel Deal",
-                    fontSize = 13.sp, // Adjusted font size for better fit
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
-                    textAlign = TextAlign.Center // Center the text horizontally inside the box
+                    textAlign = TextAlign.Center
                 )
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun HeroSectionPreview() {
+    HeroSection()
 }
