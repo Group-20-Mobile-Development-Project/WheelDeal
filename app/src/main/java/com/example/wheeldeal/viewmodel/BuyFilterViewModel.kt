@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/wheeldeal/viewmodel/BuyFilterViewModel.kt
 package com.example.wheeldeal.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -9,17 +10,19 @@ import kotlinx.coroutines.flow.update
 data class FilterState(
     val showFilters: Boolean = false,
     val brand: String = "",
+    val category: String = "",
     val transmission: String = "",
     val fuelType: String = "",
     val year: String = "",
-    val budget: Float = 1000000f,
+    val budget: Float = 1_000_000f,
 
-    // Applied filters
+    // “Applied” copies of each filter
     val appliedBrand: String = "",
+    val appliedCategory: String = "",
     val appliedTransmission: String = "",
     val appliedFuelType: String = "",
     val appliedYear: String = "",
-    val appliedBudget: Float = 1000000f
+    val appliedBudget: Float = 1_000_000f
 )
 
 class BuyFilterViewModel : ViewModel() {
@@ -33,6 +36,11 @@ class BuyFilterViewModel : ViewModel() {
 
     fun updateBrand(value: String) {
         _filters.update { it.copy(brand = value) }
+    }
+
+    // ← now takes a String, not Float
+    fun updateCategory(value: String) {
+        _filters.update { it.copy(category = value) }
     }
 
     fun updateTransmission(value: String) {
@@ -55,15 +63,17 @@ class BuyFilterViewModel : ViewModel() {
         _filters.update {
             it.copy(
                 brand = "",
+                category = "",
                 transmission = "",
                 fuelType = "",
                 year = "",
-                budget = 50000f,
+                budget = 50_000f,
                 appliedBrand = "",
+                appliedCategory = "",
                 appliedTransmission = "",
                 appliedFuelType = "",
                 appliedYear = "",
-                appliedBudget = 50000f
+                appliedBudget = 50_000f
             )
         }
     }
@@ -72,6 +82,7 @@ class BuyFilterViewModel : ViewModel() {
         _filters.update {
             it.copy(
                 appliedBrand = it.brand.trim(),
+                appliedCategory = it.category,
                 appliedTransmission = it.transmission,
                 appliedFuelType = it.fuelType,
                 appliedYear = it.year,
@@ -80,8 +91,10 @@ class BuyFilterViewModel : ViewModel() {
         }
     }
 
+    /** Convenience to update & apply in one shot */
     fun updateAllFilters(
         brand: String,
+        category: String,
         transmission: String,
         fuelType: String,
         year: String,
@@ -90,11 +103,13 @@ class BuyFilterViewModel : ViewModel() {
         _filters.update {
             it.copy(
                 brand = brand,
+                category = category,
                 transmission = transmission,
                 fuelType = fuelType,
                 year = year,
                 budget = budget,
                 appliedBrand = brand.trim(),
+                appliedCategory = category,
                 appliedTransmission = transmission,
                 appliedFuelType = fuelType,
                 appliedYear = year,
@@ -107,6 +122,7 @@ class BuyFilterViewModel : ViewModel() {
         val f = _filters.value
         return listings.filter {
             (f.appliedBrand.isBlank() || it.brand.equals(f.appliedBrand, ignoreCase = true)) &&
+                    (f.appliedCategory.isBlank() || it.category == f.appliedCategory) &&
                     (f.appliedTransmission.isBlank() || it.transmission == f.appliedTransmission) &&
                     (f.appliedFuelType.isBlank() || it.fuelType == f.appliedFuelType) &&
                     (f.appliedYear.isBlank() || it.year.toString() == f.appliedYear) &&
