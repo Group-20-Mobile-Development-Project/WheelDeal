@@ -315,7 +315,7 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                                 colors = ButtonDefaults.buttonColors(containerColor = FontIconColor),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("Detect My City", color = WhiteColor)
+                                Text("Find My City", color = WhiteColor)
                             }
                         }
 

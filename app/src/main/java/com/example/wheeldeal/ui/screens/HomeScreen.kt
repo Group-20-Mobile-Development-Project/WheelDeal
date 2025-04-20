@@ -15,11 +15,14 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -79,9 +82,14 @@ fun HomeScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        // Hero Section
-        HeroSection(modifier = Modifier.padding(bottom = 8.dp))
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        HeroSection(
+            modifier = Modifier
+                .padding(horizontal = 6.dp)
+                .padding(bottom = 16.dp)
+        )
         // Main Content
         Column(
             modifier = Modifier
@@ -97,12 +105,29 @@ fun HomeScreen(
             }
 
             // Nearby Cars Section
-            Text(
-                text = "🚗 Nearby Cars",
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(bottom = 12.dp),
-                color = MaterialTheme.colorScheme.primary
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DirectionsCar,
+                    contentDescription = "Nearby Cars",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Nearby Cars",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                )
+
+                }
+            }
 
             when {
                 nearbyCars.isEmpty() -> {
@@ -129,7 +154,6 @@ fun HomeScreen(
                 }
             }
         }
-    }
 
 
 @Composable
