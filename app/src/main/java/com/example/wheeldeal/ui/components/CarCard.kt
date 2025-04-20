@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit
 
 @Composable
 fun CarCard(
+    modifier: Modifier = Modifier,
     listing: CarListing,
     isFavorite: Boolean,
     onToggleFavorite: () -> Unit,

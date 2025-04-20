@@ -68,8 +68,8 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
             val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 getUserLocation(fusedLocationClient, context) { address ->
-                    location = address
-                    Toast.makeText(context, "Location: $address", Toast.LENGTH_LONG).show()
+                    location = extractCityFromAddress(address)
+                    Toast.makeText(context, "Detected city: $location", Toast.LENGTH_LONG).show()
                 }
             } else {
                 Toast.makeText(
@@ -188,7 +188,8 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
             price = price.toDoubleOrNull() ?: 0.0,
             negotiable = negotiable,
             photos = if (photoUrl.isNotBlank()) listOf(photoUrl) else emptyList(),
-            description = description
+            description = description,
+            city = location
         )
 
         if (editMode) {
@@ -300,12 +301,13 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                         DropdownField("Ownership", ownerships, ownership) { ownership = it }
                         // Location
 
-
                         Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                            // Manual location input
-                            InputField("Location", location) { location = it }
+                            InputField(
+                                label = "City",
+                                value = location,
+                                onValueChange = { location = it }
+                            )
 
-                            // Detect location button
                             Button(
                                 onClick = {
                                     locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -313,9 +315,12 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                                 colors = ButtonDefaults.buttonColors(containerColor = FontIconColor),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("Use My Current Location", color = WhiteColor)
+                                Text("Detect My City", color = WhiteColor)
                             }
                         }
+
+
+
 
 
                         // Price
@@ -595,4 +600,11 @@ fun getAddressFromLocation(context: Context, location: Location, onAddressFound:
     } catch (e: Exception) {
         onAddressFound("Could not get address")
     }
+}
+
+private fun extractCityFromAddress(fullAddress: String): String {
+    return fullAddress.split(",")
+        .firstOrNull()  // Takes the part before first comma (e.g., "New York" from "New York, USA")
+        ?.trim()        // Removes whitespace
+        ?: fullAddress  // Fallback if no comma found
 }
