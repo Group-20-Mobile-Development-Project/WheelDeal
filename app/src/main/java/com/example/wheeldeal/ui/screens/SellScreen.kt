@@ -50,8 +50,6 @@ import android.location.LocationManager
 import android.provider.Settings
 
 
-
-
 @Composable
 fun SellScreen(viewModel: ListingViewModel = viewModel()) {
     val context = LocalContext.current
@@ -105,6 +103,7 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
     var brand by remember { mutableStateOf("") }
     var model by remember { mutableStateOf("") }
     var year by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf("") }
     var transmission by remember { mutableStateOf("") }
     var condition by remember { mutableStateOf("") }
     var color by remember { mutableStateOf("") }
@@ -125,6 +124,16 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
     // Dropdown data
     val conditionOptions = listOf("New", "Used")
     val years = (2000..2025).map { it.toString() }
+    val categoryOptions = listOf(
+        "Sedan",
+        "Hatchback",
+        "SUV",
+        "Coupe",
+        "Convertible",
+        "Luxury",
+        "Van",
+        "Truck"
+    )
     val transmissions = listOf("Automatic", "Manual")
     val fuelTypes = listOf("Petrol", "Diesel", "Electric", "Hybrid")
     val accidentOptions = listOf("0", "1", "2", "3+")
@@ -138,6 +147,7 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
         year = ""
         transmission = ""
         condition = ""
+        category = ""
         color = ""
         engineCapacity = ""
         fuelType = ""
@@ -158,7 +168,7 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
     val handleSubmit = let@{
         attemptedSubmit = true
         if (
-            brand.isBlank() || model.isBlank() || year.isBlank() || condition.isBlank() ||
+            brand.isBlank() || model.isBlank() || year.isBlank() || condition.isBlank() || category.isBlank() ||
             transmission.isBlank() || price.isBlank() || color.isBlank() || engineCapacity.isBlank() ||
             fuelType.isBlank() || avgMileage.isBlank() || odometer.isBlank() || accidents.isBlank() ||
             seats.isBlank() || lastInspection.isBlank() || ownership.isBlank() || location.isBlank() ||
@@ -173,6 +183,7 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
             brand = brand,
             model = model,
             year = year.toIntOrNull() ?: 0,
+            category = category,
             condition = condition,
             transmission = transmission,
             color = color,
@@ -277,6 +288,8 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                         InputField("Model", model) { model = it }
                         // Year
                         DropdownField("Year", years, year) { year = it }
+                        // Category
+                        DropdownField("Category", categoryOptions, category) { category = it }
                         // Condition
                         DropdownField("Condition", conditionOptions, condition) { condition = it }
                         // Transmission
@@ -350,8 +363,8 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                         // Submit
                         Button (
                             onClick = handleSubmit,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = FontIconColor)
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = FontIconColor)
                         ) {
                             Text("Submit", color = WhiteColor)
                         }
@@ -423,6 +436,7 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                                 brand = listing.brand
                                 model = listing.model
                                 year = listing.year.toString()
+                                category = listing.category
                                 condition = listing.condition
                                 transmission = listing.transmission
                                 color = listing.color
