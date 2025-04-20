@@ -9,6 +9,7 @@ data class CarListing(
     val year: Int = 0,
     val brand: String = "",
     val model: String = "",
+    val category: String = "", // e.g. "SUV", "Sedan", "Hatchback"
     val transmission: String = "", // "Manual", "Automatic", etc.
     val color: String = "",
     val engineCapacity: Int = 0, // e.g. "2.0L"
@@ -25,9 +26,7 @@ data class CarListing(
     val photos: List<String> = emptyList(), // Firebase Storage URLs
     val description: String = "",
     val createdAt: Timestamp = Timestamp.now(),
-        val city: String = "",
-        val latitude: Double = 0.0,
-        val longitude: Double = 0.0
-    )
-
-
+    val city: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
+)
