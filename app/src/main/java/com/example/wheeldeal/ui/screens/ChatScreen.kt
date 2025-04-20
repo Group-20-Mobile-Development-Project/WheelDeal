@@ -5,7 +5,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,106 +18,205 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import com.example.wheeldeal.ui.theme.AppTypography
+import com.example.wheeldeal.ui.theme.Cabin
+import com.example.wheeldeal.ui.theme.FontIconColor
+import com.example.wheeldeal.ui.theme.Poppins
+import com.example.wheeldeal.ui.theme.PrimaryColor
+import com.example.wheeldeal.ui.theme.WhiteColor
 import com.example.wheeldeal.viewmodel.ChatViewModel
 import com.google.firebase.auth.FirebaseAuth
-import androidx.compose.material3.HorizontalDivider
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
     chatId: String,
     receiverId: String,
-    chatViewModel: ChatViewModel = viewModel()
+    navController: NavHostController,
+    chatViewModel: ChatViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    val context = LocalContext.current
-    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-    var messageText by remember { mutableStateOf(TextFieldValue("")) }
+    val context    = LocalContext.current
+    val currentUser = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+    var draft      by remember { mutableStateOf(TextFieldValue()) }
+    val messages   by chatViewModel.messages.collectAsState()
 
-    val messages by chatViewModel.messages.collectAsState()
-
-    // Listen to messages in real-time
     LaunchedEffect(chatId) {
-        chatViewModel.listenToMessages(chatId)
+        if (chatId.isNotBlank()) chatViewModel.listenToMessages(chatId)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF8F8F8))
-            .padding(12.dp)
+    val displayName by produceState(initialValue = "", key1 = receiverId) {
+        val doc = FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(receiverId)
+            .get()
+            .await()
+        val f = doc.getString("firstName").orEmpty()
+        val l = doc.getString("lastName").orEmpty()
+        value = listOf(f, l).filter(String::isNotBlank).joinToString(" ")
+    }
+
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(WhiteColor)
     ) {
-        Text(
-            text = "Chat",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        HorizontalDivider(thickness = 1.dp, color = Color.Gray.copy(alpha = 0.3f))
-
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            reverseLayout = true
+        // Header
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .background(FontIconColor)
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            items(messages.reversed()) { message ->
-                val isSentByMe = message.senderId == currentUserId
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    contentAlignment = if (isSentByMe) Alignment.CenterEnd else Alignment.CenterStart
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = WhiteColor
+                )
+            }
+
+            Text(
+                displayName.ifBlank { "Chat" },
+                style = AppTypography.headlineLarge.copy(
+                    fontSize = 20.sp,
+                    color = WhiteColor,
+                    fontFamily = Poppins
+                ),
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp)
+            )
+
+            IconButton(
+                onClick = { /* TODO: call */ },
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    Icons.Filled.Call,
+                    contentDescription = "Call",
+                    tint = WhiteColor
+                )
+            }
+        }
+
+        Divider(color = Color.LightGray, thickness = 1.dp)
+
+        // Message list
+        LazyColumn(
+            Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            reverseLayout = true,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(messages.reversed()) { msg ->
+                val mine = msg.senderId == currentUser
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement =
+                        if (mine) Arrangement.End else Arrangement.Start
                 ) {
+                    // both sides use the same fully‑rounded shape
+                    val bubbleShape = RoundedCornerShape(20.dp)
+                    // mine = yellow, other = light surfaceVariant
+                    val bubbleColor = if (mine)
+                        PrimaryColor
+                    else
+                        MaterialTheme.colorScheme.surfaceVariant
+                    // ensure the text contrasts properly
+                    val textColor = if (mine)
+                        MaterialTheme.colorScheme.onPrimary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
+
                     Surface(
-                        color = if (isSentByMe) Color(0xFFDCF8C6) else Color.White,
-                        shape = RoundedCornerShape(16.dp),
-                        shadowElevation = 2.dp
+                        shape          = bubbleShape,
+                        color          = bubbleColor,
+                        shadowElevation = 2.dp,
+                        modifier       = Modifier
+                            .widthIn(max = 280.dp)     // constrain width
+                            .padding(vertical = 4.dp)  // spacing between rows
                     ) {
                         Text(
-                            text = message.message,
-                            modifier = Modifier.padding(10.dp),
-                            color = Color.Black
+                            text = msg.message,
+                            style = AppTypography.bodyMedium.copy(
+                                fontFamily = if (mine) Poppins else Cabin
+                            ),
+                            color = textColor,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
                         )
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Divider(color = Color.LightGray, thickness = 1.dp)
 
+        // Input row
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            Modifier
+                .fillMaxWidth()
+                .background(WhiteColor)
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            OutlinedTextField(
-                value = messageText,
-                onValueChange = { messageText = it },
+            TextField(
+                value = draft,
+                onValueChange = { draft = it },
+                placeholder = {
+                    Text("Type a message...", style = AppTypography.bodyMedium.copy(
+                        fontFamily = Cabin
+                    ))
+                },
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = 8.dp),
-                placeholder = { Text("Type a message...") },
-                shape = RoundedCornerShape(24.dp)
-            )
-            Button(
-                onClick = {
-                    if (messageText.text.isNotBlank()) {
-                        chatViewModel.sendMessage(
-                            chatId = chatId,
-                            senderId = currentUserId,
-                            receiverId = receiverId,
-                            message = messageText.text
+                    .heightIn(min = 56.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = WhiteColor,
+                    unfocusedContainerColor = WhiteColor,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                textStyle = AppTypography.bodyMedium.copy(fontFamily = Cabin),
+                trailingIcon = {
+                    IconButton(
+                        onClick = {
+                            if (draft.text.isNotBlank()) {
+                                chatViewModel.sendMessage(
+                                    chatId = chatId,
+                                    senderId = currentUser,
+                                    receiverId = receiverId,
+                                    message = draft.text
+                                )
+                                draft = TextFieldValue()
+                            } else {
+                                Toast.makeText(context, "Enter a message", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        modifier = Modifier
+                            .size(44.dp)
+                            .background(PrimaryColor, shape = CircleShape)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Send,
+                            contentDescription = "Send",
+                            tint = FontIconColor
                         )
-                        messageText = TextFieldValue("")
-                    } else {
-                        Toast.makeText(context, "Enter a message", Toast.LENGTH_SHORT).show()
                     }
                 }
-            ) {
-                Text("Send")
-            }
+            )
         }
     }
 }

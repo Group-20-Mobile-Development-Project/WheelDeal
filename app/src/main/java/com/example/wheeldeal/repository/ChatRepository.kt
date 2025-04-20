@@ -92,4 +92,33 @@ class ChatRepository {
 
         awaitClose { listener.remove() }
     }
+    /** fetch all chats involving this user */
+    suspend fun getChatsForUser(userId: String): List<Chat> {
+        val db = FirebaseFirestore.getInstance()
+        val results = mutableListOf<Chat>()
+
+        // Query where user1Id == you
+        db.collection("chats")
+            .whereEqualTo("user1Id", userId)
+            .get().await()
+            .documents
+            .forEach { snap ->
+                snap.toObject(Chat::class.java)
+                    ?.copy(id = snap.id)
+                    ?.let { results.add(it) }
+            }
+
+        // Query where user2Id == you
+        db.collection("chats")
+            .whereEqualTo("user2Id", userId)
+            .get().await()
+            .documents
+            .forEach { snap ->
+                snap.toObject(Chat::class.java)
+                    ?.copy(id = snap.id)
+                    ?.let { results.add(it) }
+            }
+
+        return results
+    }
 }

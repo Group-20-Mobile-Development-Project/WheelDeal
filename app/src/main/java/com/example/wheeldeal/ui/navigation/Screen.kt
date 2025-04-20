@@ -21,7 +21,10 @@ sealed class Screen(val route: String) {
     }
 
     object Chat : Screen("chat/{chatId}/{receiverId}") {
-              fun createRoute(chatId: String, receiverId: String) =
-                    "chat/$chatId/$receiverId"
-            }
+        fun createRoute(chatId: String, receiverId: String) = "chat/$chatId/$receiverId"
+    }
+
+    object ChatList : Screen("chatList") {
+        fun createRoute() = "chatList"
+    }
 }
