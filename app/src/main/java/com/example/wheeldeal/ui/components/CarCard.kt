@@ -49,8 +49,8 @@ fun CarCard(
         modifier = Modifier
             .width(180.dp)
             .padding(8.dp),
-        shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(6.dp)
+        shape = RoundedCornerShape(5.dp),
+        elevation = CardDefaults.cardElevation(10.dp)
     ) {
         Column {
             // Name + Date Row
@@ -80,7 +80,6 @@ fun CarCard(
                 modifier = Modifier
                     .height(120.dp)
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
             )
 
             Column(modifier = Modifier.padding(12.dp)) {
@@ -156,5 +155,3 @@ fun formatTimeAgo(timestamp: Long): String {
         }
     }
 }
-
-

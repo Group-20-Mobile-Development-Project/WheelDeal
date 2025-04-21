@@ -8,19 +8,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.wheeldeal.viewmodel.NotificationViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.wheeldeal.model.CarListing
-import com.example.wheeldeal.model.NotificationItem
-import com.example.wheeldeal.ui.components.BottomNavItem
-import com.example.wheeldeal.ui.components.BottomNavigationBar
-import com.example.wheeldeal.ui.components.TopNavigationBar
+import com.example.wheeldeal.ui.components.*
 import com.example.wheeldeal.ui.navigation.Screen
-import com.example.wheeldeal.viewmodel.AuthViewModel
-import com.example.wheeldeal.viewmodel.BuyFilterViewModel
+import com.example.wheeldeal.viewmodel.*
 import com.google.gson.Gson
 
 @Composable
@@ -32,61 +27,64 @@ fun MainScreen(
     val innerNav = rememberNavController()
 
     val bottomNavItems = listOf(
-        BottomNavItem("Home", Icons.Default.Home, Screen.Home.route),
-        BottomNavItem("Buy", Icons.Default.ShoppingCart, Screen.Buy.route),
-        BottomNavItem("Favorites", Icons.Default.Favorite, Screen.Favorites.route),
-        BottomNavItem("Sell", Icons.Default.Add, Screen.Sell.route),
-        BottomNavItem("Account", Icons.Default.Person, Screen.Account.route)
+        BottomNavItem("Home",      Icons.Default.Home,         Screen.Home.route),
+        BottomNavItem("Buy",       Icons.Default.ShoppingCart, Screen.Buy.route),
+        BottomNavItem("Favorites", Icons.Default.Favorite,     Screen.Favorites.route),
+        BottomNavItem("Sell",      Icons.Default.Add,          Screen.Sell.route),
+        BottomNavItem("Account",   Icons.Default.Person,       Screen.Account.route)
     )
-    val filterViewModel: BuyFilterViewModel = viewModel()
-    val notificationViewModel: NotificationViewModel = viewModel()
 
+    val filterViewModel: BuyFilterViewModel         = viewModel()
+    val notificationViewModel: NotificationViewModel = viewModel()
 
     Scaffold(
         topBar = {
             TopNavigationBar(
-                onMessageClick = { innerNav.navigate(Screen.ChatList.route) },
+                onMessageClick      = { innerNav.navigate(Screen.ChatList.route) },
                 onNotificationClick = { innerNav.navigate("notifications") }
             )
         },
         bottomBar = {
             BottomNavigationBar(
                 items = bottomNavItems,
-                onItemSelected = { selectedItem ->
-                        innerNav.navigate(selectedItem.route) {
-                            popUpTo(Screen.Home.route) { inclusive = false }
-                        }
-
+                onItemSelected = { item ->
+                    innerNav.navigate(item.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                    }
                 }
             )
         }
-    ) { innerPadding ->
+    ) { padding ->
         Box(
-            modifier = Modifier
+            Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(padding),
             contentAlignment = Alignment.Center
         ) {
             NavHost(
-                navController = innerNav,
+                navController   = innerNav,
                 startDestination = Screen.Home.route
             ) {
-
+                // 1) Home
                 composable(Screen.Home.route) {
-                    HomeScreen(
-
-                        innerNav = innerNav
-                    )
+                    HomeScreen(innerNav = innerNav)
                 }
+                // 2) Buy
                 composable(Screen.Buy.route) {
                     BuyScreen(
-                        navController = innerNav,
+                        navController   = innerNav,
                         filterViewModel = filterViewModel
                     )
                 }
-                composable(Screen.Favorites.route) { FavoritesScreen() }
-                composable(Screen.Sell.route) { SellScreen() }
-
+                // 3) Favorites
+                composable(Screen.Favorites.route) {
+                    FavoritesScreen()
+                }
+                // 4) Sell
+                composable(Screen.Sell.route) {
+                    SellScreen()
+                }
+                // 5) Account (switch between logged‑in vs. login)
                 composable(Screen.Account.route) {
                     if (userData != null) {
                         ProfileScreen(
@@ -99,7 +97,7 @@ fun MainScreen(
                         )
                     } else {
                         AccountScreen(
-                            viewModel = viewModel,
+                            viewModel        = viewModel,
                             onLoginSuccess = {
                                 innerNav.navigate(Screen.Account.route) {
                                     popUpTo(Screen.Account.route) { inclusive = true }
@@ -108,37 +106,39 @@ fun MainScreen(
                         )
                     }
                 }
-
+                // Notifications
                 composable("notifications") {
                     NotificationScreen(
-                        navController = navController,
-                        viewModel = notificationViewModel
-                    ) }
-
-                composable("carDetails/{listingJson}") { backStackEntry ->
-                    val json = backStackEntry.arguments?.getString("listingJson") ?: ""
+                        navController = innerNav,
+                        viewModel     = notificationViewModel
+                    )
+                }
+                // Car details
+                composable("carDetails/{listingJson}") { backStack ->
+                    val json    = backStack.arguments?.getString("listingJson") ?: ""
                     val listing = Gson().fromJson(json, CarListing::class.java)
                     CarDetailsScreen(listing = listing, navController = innerNav)
                 }
-
-                composable("carOwnerDetails/{listingJson}") { backStackEntry ->
-                    val json = backStackEntry.arguments?.getString("listingJson") ?: ""
+                // Car owner details
+                composable("carOwnerDetails/{listingJson}") { backStack ->
+                    val json    = backStack.arguments?.getString("listingJson") ?: ""
                     val listing = Gson().fromJson(json, CarListing::class.java)
-                    CarOwnerDetailsScreen(
-                         listing       = listing,
-                          navController = innerNav)
+                    CarOwnerDetailsScreen(listing = listing, navController = innerNav)
                 }
-
+                // Chat list & single chat
                 composable(Screen.ChatList.route) {
                     ChatListScreen(navController = innerNav)
                 }
-
-                composable(Screen.Chat.route) { backStackEntry ->
-                    val chatId     = backStackEntry.arguments?.getString("chatId")     ?: ""
-                    val receiverId = backStackEntry.arguments?.getString("receiverId") ?: ""
-                    ChatScreen(chatId = chatId, receiverId = receiverId,navController = innerNav )
+                composable(Screen.Chat.route) { backStack ->
+                    val chatId     = backStack.arguments?.getString("chatId")     ?: ""
+                    val receiverId = backStack.arguments?.getString("receiverId") ?: ""
+                    ChatScreen(
+                        chatId        = chatId,
+                        receiverId    = receiverId,
+                        navController = innerNav
+                    )
                 }
             }
+        }
     }
-}
 }

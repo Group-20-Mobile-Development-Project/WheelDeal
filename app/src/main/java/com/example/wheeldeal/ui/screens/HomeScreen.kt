@@ -2,40 +2,42 @@ package com.example.wheeldeal.ui.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
-import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.wheeldeal.model.CarListing
 import com.example.wheeldeal.ui.components.CarCard
 import com.example.wheeldeal.ui.components.HeroSection
+import com.example.wheeldeal.ui.navigation.Screen
+import com.example.wheeldeal.viewmodel.ListingState
 import com.example.wheeldeal.viewmodel.ListingViewModel
 import com.google.android.gms.location.LocationServices
 import com.google.gson.Gson
-import java.util.Locale
+import java.util.*
 
 @Composable
 fun HomeScreen(
@@ -43,176 +45,192 @@ fun HomeScreen(
     innerNav: NavHostController
 ) {
     val context = LocalContext.current
+
+    // 1) location‐based
     var permissionDenied by remember { mutableStateOf(false) }
     val nearbyCars by viewModel.nearbyListings.collectAsState()
 
-    val locationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            permissionDenied = false
-            fetchUserCity(context, viewModel)
-        } else {
-            permissionDenied = true
-        }
+    // 2) full master list
+    val listingState by viewModel.listingState.collectAsState()
+    val allCars: List<CarListing> = when (listingState) {
+        is ListingState.Success -> (listingState as ListingState.Success).listings
+        else                 -> emptyList()
     }
 
+    // permission launcher
+    val locationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        permissionDenied = !granted
+        if (granted) fetchUserCity(context, viewModel)
+    }
+
+    // on first compose, check or ask
     LaunchedEffect(Unit) {
-        when {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                fetchUserCity(context, viewModel)
-            }
-            ActivityCompat.shouldShowRequestPermissionRationale(
-                (context as Activity),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) -> {
-                permissionDenied = true
-            }
-            else -> {
-                locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-            }
+        if (ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_FINE_LOCATION
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            fetchUserCity(context, viewModel)
+        } else {
+            locationLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
 
     Column(
-        modifier = Modifier
+        Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
+        Spacer(Modifier.height(16.dp))
+        HeroSection(modifier = Modifier.padding(horizontal = 6.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        HeroSection(
-            modifier = Modifier
-                .padding(horizontal = 6.dp)
-                .padding(bottom = 16.dp)
+        // ─── Nearby ───────────────────────────────────────────────────────────────
+        Spacer(Modifier.height(24.dp))
+        HomeSection(
+            icon               = Icons.Default.DirectionsCar,
+            title              = "Nearby Cars",
+            cars               = nearbyCars,
+            innerNav           = innerNav,
+            permissionDenied   = permissionDenied,
+            onRequestPermission= { locationLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }
         )
-        // Main Content
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp)
-        ) {
-            // Permission Denied Message
-            if (permissionDenied) {
-                PermissionDeniedMessage {
-                    locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
 
-            // Nearby Cars Section
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DirectionsCar,
-                    contentDescription = "Nearby Cars",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Nearby Cars",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                )
+        // ─── SUV ─────────────────────────────────────────────────────────────────
+        Spacer(Modifier.height(32.dp))
+        HomeSection(
+            icon     = Icons.Default.FilterList,
+            title    = "SUV Cars",
+            subtitle = "Approved and inspected",
+            cars     = allCars.filter { it.category.equals("SUV", true) },
+            innerNav = innerNav
+        )
 
-                }
-            }
+        // ─── Sedan ──────────────────────────────────────────────────────────────
+        Spacer(Modifier.height(32.dp))
+        HomeSection(
+            icon     = Icons.Default.FilterList,
+            title    = "Sedan Cars",
+            subtitle = "Approved and inspected",
+            cars     = allCars.filter { it.category.equals("Sedan", true) },
+            innerNav = innerNav
+        )
 
-            when {
-                nearbyCars.isEmpty() -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "No cars found in your area",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                    }
-                }
-                else -> {
-                    NearbyCarsList(
-                        cars = nearbyCars,
-                        innerNav = innerNav,  // Pass the NavController directly
-                        modifier = Modifier
-                    )
-                }
-                }
-            }
-        }
+        // ─── Hatchback ──────────────────────────────────────────────────────────
+        Spacer(Modifier.height(32.dp))
+        HomeSection(
+            icon     = Icons.Default.FilterList,
+            title    = "Hatchback Cars",
+            subtitle = "Approved and inspected",
+            cars     = allCars.filter { it.category.equals("Hatchback", true) },
+            innerNav = innerNav
+        )
 
-
-@Composable
-private fun NearbyCarsList(
-    cars: List<CarListing>,
-    innerNav: NavHostController,  // Receive NavController directly
-    modifier: Modifier = Modifier
-) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = modifier.fillMaxWidth()
-    ) {
-        items(cars) { car ->
-            CarCard(
-                listing = car,
-                isFavorite = false,
-                onToggleFavorite = { /* Handle favorite toggle */ },
-                onClick = {
-                    try {
-                        val json = Gson().toJson(car)
-                        val encodedJson = Uri.encode(json)
-                        innerNav.navigate("carDetails/$encodedJson") {
-                            // Optional: Add navigation options
-                            launchSingleTop = true
-                        }
-                        Log.d("Navigation", "Navigating to carDetails")
-                    } catch (e: Exception) {
-                        Log.e("Navigation", "Failed to navigate", e)
-                    }
-                },
-                modifier = Modifier.width(280.dp)
-            )
-        }
+        Spacer(Modifier.height(32.dp))
     }
 }
 
 @Composable
-private fun PermissionDeniedMessage(onRequestPermission: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer
-        )
+private fun HomeSection(
+    icon: ImageVector,
+    title: String,
+    cars: List<CarListing>,
+    innerNav: NavHostController,
+    subtitle: String? = null,
+    permissionDenied: Boolean = false,
+    onRequestPermission: (() -> Unit)? = null
+) {
+    // header
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                "Location permission required to show nearby cars",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = onRequestPermission,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Spacer(Modifier.width(8.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleLarge)
+            subtitle?.let {
+                Text(it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
+            }
+        }
+    }
+
+    // content
+    when {
+        // only for Nearby section
+        permissionDenied && onRequestPermission != null -> {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Text("Grant Permission")
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Location permission required")
+                    Spacer(Modifier.height(8.dp))
+                    Button(onClick = onRequestPermission) { Text("Grant") }
+                }
+            }
+        }
+
+        cars.isEmpty() -> {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No cars found")
+            }
+        }
+
+        else -> {
+            LazyRow(
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(cars.take(5)) { car ->
+                    CarCard(
+                        listing = car,
+                        isFavorite = false,
+                        onToggleFavorite = { /*…*/ },
+                        onClick = {
+                            val payload = Uri.encode(Gson().toJson(car))
+                            innerNav.navigate("carDetails/$payload") { launchSingleTop = true }
+                        },
+                        modifier = Modifier.width(150.dp)
+                    )
+                }
+                // centered “See more →”
+                item {
+                    Box(
+                        Modifier
+                            .width(150.dp)
+                            .height(280.dp)
+                            .clickable { innerNav.navigate(Screen.Buy.route) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("See more",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Icon(Icons.Default.ArrowForward,
+                                contentDescription = "See more",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -220,28 +238,17 @@ private fun PermissionDeniedMessage(onRequestPermission: () -> Unit) {
 
 @SuppressLint("MissingPermission")
 private fun fetchUserCity(context: Context, viewModel: ListingViewModel) {
-    if (ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED
-    ) {
-        return
-    }
-
-    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-        location?.let {
-            try {
-                val geocoder = Geocoder(context, Locale.getDefault())
-                val addresses = geocoder.getFromLocation(it.latitude, it.longitude, 1)
-                addresses?.firstOrNull()?.locality?.let { city ->
-                    viewModel.loadNearbyListings(city)
-                }
-            } catch (e: Exception) {
-                Log.e("HomeScreen", "Geocoder error", e)
+    val client = LocationServices.getFusedLocationProviderClient(context)
+    client.lastLocation
+        .addOnSuccessListener { loc ->
+            loc?.let {
+                runCatching {
+                    val geo = Geocoder(context, Locale.getDefault())
+                    geo.getFromLocation(it.latitude, it.longitude, 1)
+                        ?.firstOrNull()?.locality
+                        ?.let(viewModel::loadNearbyListings)
+                }.onFailure { e -> Log.e("HomeScreen", "Geocoder error", e) }
             }
         }
-    }.addOnFailureListener { e ->
-        Log.e("HomeScreen", "Location error", e)
-    }
+        .addOnFailureListener { e -> Log.e("HomeScreen", "Location fetch failed", e) }
 }

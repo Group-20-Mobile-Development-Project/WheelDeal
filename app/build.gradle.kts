@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.play.services.location)
     debugImplementation(libs.androidx.ui.tooling)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -86,7 +87,7 @@ dependencies {
 
     implementation(libs.coil.compose)
 
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.gson)
 
 
     // Google Maps dependency
