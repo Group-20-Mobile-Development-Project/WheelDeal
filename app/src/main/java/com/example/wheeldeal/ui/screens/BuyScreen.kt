@@ -82,7 +82,7 @@ fun BuyScreen(
             ), localCategory) {
                 localCategory = it
             }
-            FilterDropdown("Transmission", listOf("Auto", "Manual"), localTransmission) {
+            FilterDropdown("Transmission", listOf("Automatic", "Manual"), localTransmission) {
                 localTransmission = it
             }
             FilterDropdown("Fuel Type", listOf("Petrol", "Diesel", "Electric", "Hybrid"), localFuelType) {
