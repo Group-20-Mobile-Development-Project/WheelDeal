@@ -1,3 +1,9 @@
+@file:OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class
+)
+
+
 package com.example.wheeldeal.ui.screens
 
 import android.widget.Toast
@@ -9,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
@@ -24,10 +31,17 @@ import coil.compose.AsyncImage
 import com.example.wheeldeal.model.CarListing
 import com.example.wheeldeal.ui.components.CarCard
 import com.example.wheeldeal.ui.navigation.Screen
+import com.example.wheeldeal.ui.theme.BackgroundWrapper
+import com.example.wheeldeal.ui.theme.DarkBlue
+import com.example.wheeldeal.ui.theme.FontIconColor
+import com.example.wheeldeal.ui.theme.WhiteColor
 import com.example.wheeldeal.viewmodel.BuyFilterViewModel
 import com.example.wheeldeal.viewmodel.FavoritesViewModel
 import com.example.wheeldeal.viewmodel.ListingState
 import com.example.wheeldeal.viewmodel.ListingViewModel
+
+
+
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +64,7 @@ fun BuyScreen(
     var localYear         by remember { mutableStateOf(filters.year) }
     var localBudget       by remember { mutableFloatStateOf(filters.budget) }
 
+    BackgroundWrapper {
     Column(
         Modifier
             .fillMaxSize()
@@ -60,22 +75,22 @@ fun BuyScreen(
         Button(
             onClick = { filterViewModel.toggleFilterSection() },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = DarkBlue,
+                contentColor = WhiteColor
+            )
         ) {
             Text(if (filters.showFilters) "Hide Filters" else "Show Filters")
         }
         Spacer(Modifier.height(12.dp))
 
         if (filters.showFilters) {
-            OutlinedTextField(
-                value = localBrand,
-                onValueChange = { localBrand = it },
-                label = { Text("Brand") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                shape = RoundedCornerShape(24.dp)
+            BrandInput(
+                brand = localBrand,
+                onBrandChanged = { localBrand = it }
             )
+
             FilterDropdown("Category", listOf(
                 "Sedan", "Hatchback", "SUV", "Coupe",
                 "Convertible", "Van", "Truck"
@@ -194,8 +209,34 @@ fun BuyScreen(
         }
     }
 }
+}
+@Composable
+fun BrandInput(
+    brand: String,
+    onBrandChanged: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = brand,
+        onValueChange = onBrandChanged,
+        label = { Text("Brand", color = FontIconColor) },
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            unfocusedTextColor = FontIconColor,
+            focusedTextColor = FontIconColor,
+            unfocusedBorderColor = FontIconColor.copy(alpha = 0.5f),
+            focusedBorderColor = FontIconColor,
+            unfocusedLabelColor = FontIconColor.copy(alpha = 0.5f),
+            focusedLabelColor = FontIconColor,
+            cursorColor = FontIconColor
+        ),
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    )
+}
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+
 @Composable
 private fun FilterDropdown(
     label: String,
@@ -212,8 +253,21 @@ private fun FilterDropdown(
             value = selected,
             onValueChange = {},
             readOnly = true,
-            label = { Text(label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            label = { Text(label, color = FontIconColor) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+            },
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                unfocusedTextColor = FontIconColor,
+                focusedTextColor = FontIconColor,
+                unfocusedBorderColor = FontIconColor.copy(alpha = 0.5f),
+                focusedBorderColor = FontIconColor,
+                unfocusedLabelColor = FontIconColor.copy(alpha = 0.5f),
+                focusedLabelColor = FontIconColor,
+                cursorColor = FontIconColor,
+                unfocusedTrailingIconColor = FontIconColor.copy(alpha = 0.5f),
+                focusedTrailingIconColor = FontIconColor
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor()
@@ -222,15 +276,25 @@ private fun FilterDropdown(
         )
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(WhiteColor)
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option) },
+                    text = {
+                        Text(
+                            option,
+                            color = FontIconColor,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
                     onClick = {
                         onSelected(option)
                         expanded = false
-                    }
+                    },
+                    colors = MenuDefaults.itemColors(
+                        textColor = FontIconColor
+                    )
                 )
             }
         }

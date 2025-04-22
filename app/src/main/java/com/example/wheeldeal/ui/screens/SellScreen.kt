@@ -48,6 +48,7 @@ import java.util.Locale
 import android.content.Intent
 import android.location.LocationManager
 import android.provider.Settings
+import com.example.wheeldeal.ui.theme.BackgroundWrapper
 
 
 @Composable
@@ -233,10 +234,11 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
     }*/
 
     // Main layout with lazy column
+    BackgroundWrapper {
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(PrimaryColor)
             .padding(16.dp)
     ) {
         // (1) Title & Toggle Button
@@ -474,6 +476,7 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
         }
 
     }
+}
 }
 
 // Basic single-line input field

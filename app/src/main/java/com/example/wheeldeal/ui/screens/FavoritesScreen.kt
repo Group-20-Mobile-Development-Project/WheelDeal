@@ -24,11 +24,13 @@ import coil.compose.AsyncImage
 import com.example.wheeldeal.model.CarListing
 import com.example.wheeldeal.ui.theme.FontIconColor
 import com.example.wheeldeal.ui.theme.Poppins
-import com.example.wheeldeal.ui.theme.PrimaryColor
 import com.example.wheeldeal.ui.theme.WhiteColor
 import com.example.wheeldeal.viewmodel.FavoritesViewModel
 import com.example.wheeldeal.viewmodel.ListingState
 import com.example.wheeldeal.viewmodel.ListingViewModel
+
+import com.example.wheeldeal.ui.theme.BackgroundWrapper
+
 
 @Composable
 fun FavoritesScreen(
@@ -42,11 +44,18 @@ fun FavoritesScreen(
     val favoriteListings = (state as? ListingState.Success)?.listings
         ?.filter { favoriteIds.contains(it.id) }
         ?: emptyList()
-
+    BackgroundWrapper {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(PrimaryColor)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), // Light version of the primary color
+                        MaterialTheme.colorScheme.background // App's background color
+                    )
+                )
+            )
             .padding(16.dp)
     ) {
         HeaderSection()
@@ -68,6 +77,7 @@ fun FavoritesScreen(
             }
         }
     }
+}
 }
 
 @Composable

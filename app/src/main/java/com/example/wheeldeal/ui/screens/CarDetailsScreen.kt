@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavHostController
 import com.example.wheeldeal.ui.navigation.Screen
+import com.example.wheeldeal.ui.theme.BackgroundWrapper
 import com.example.wheeldeal.ui.theme.PrimaryColor
 import com.google.gson.Gson
 
@@ -36,11 +37,11 @@ fun CarDetailsScreen(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-
+BackgroundWrapper {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFD966))
+
     ) {
         // Scrollable Content
         Column(
@@ -170,4 +171,5 @@ fun CarDetailsScreen(
             Spacer(modifier = Modifier.height(16.dp)) // bottom scroll padding
         }
     }
+}
 }
