@@ -1,6 +1,9 @@
 package com.example.wheeldeal.ui.screens
 
-import android.widget.Toast
+import android.os.Bundle
+
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,9 +11,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Call
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,16 +26,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.wheeldeal.ui.theme.AppTypography
-import com.example.wheeldeal.ui.theme.Cabin
-import com.example.wheeldeal.ui.theme.FontIconColor
-import com.example.wheeldeal.ui.theme.Poppins
-import com.example.wheeldeal.ui.theme.PrimaryColor
-import com.example.wheeldeal.ui.theme.WhiteColor
-import com.example.wheeldeal.viewmodel.ChatViewModel
+import androidx.core.view.WindowCompat
+import com.example.wheeldeal.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import com.example.wheeldeal.viewmodel.ChatViewModel
+import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,14 +43,19 @@ fun ChatScreen(
     navController: NavHostController,
     chatViewModel: ChatViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    val context    = LocalContext.current
+    val context = LocalContext.current
     val currentUser = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
-    var draft      by remember { mutableStateOf(TextFieldValue()) }
-    val messages   by chatViewModel.messages.collectAsState()
+    var draft by remember { mutableStateOf(TextFieldValue()) }
+    val messages by chatViewModel.messages.collectAsState()
+
 
     LaunchedEffect(chatId) {
         if (chatId.isNotBlank()) chatViewModel.listenToMessages(chatId)
     }
+
+    // Apply window configuration to handle system UI (status bar) overlap
+    val activity = LocalActivity.current as ComponentActivity
+    WindowCompat.setDecorFitsSystemWindows(activity.window, false)
 
     val displayName by produceState(initialValue = "", key1 = receiverId) {
         val doc = FirebaseFirestore.getInstance()
@@ -141,10 +148,10 @@ fun ChatScreen(
                         MaterialTheme.colorScheme.onSurfaceVariant
 
                     Surface(
-                        shape          = bubbleShape,
-                        color          = bubbleColor,
+                        shape = bubbleShape,
+                        color = bubbleColor,
                         shadowElevation = 2.dp,
-                        modifier       = Modifier
+                        modifier = Modifier
                             .widthIn(max = 280.dp)     // constrain width
                             .padding(vertical = 4.dp)  // spacing between rows
                     ) {
@@ -181,7 +188,8 @@ fun ChatScreen(
                 },
                 modifier = Modifier
                     .weight(1f)
-                    .heightIn(min = 56.dp),
+                    .heightIn(min = 56.dp)
+                    .imePadding(), // Apply imePadding to prevent keyboard overlap
                 shape = RoundedCornerShape(28.dp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = WhiteColor,
