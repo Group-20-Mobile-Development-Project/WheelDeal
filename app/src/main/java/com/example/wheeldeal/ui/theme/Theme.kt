@@ -1,6 +1,7 @@
 package com.example.wheeldeal.ui.theme
 
 import android.os.Build
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -9,6 +10,12 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+
 
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryColor,
@@ -29,6 +36,18 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
+fun BackgroundWrapper(content: @Composable BoxScope.() -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(listOf(PrimaryColor, WhiteColor))
+            ),
+        content = content
+    )
+}
+
+@Composable
 fun WheelDealTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false, // Set to false if you don't need dynamic color
@@ -42,6 +61,7 @@ fun WheelDealTheme(
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
+
 
     MaterialTheme(
         colorScheme = colorScheme,

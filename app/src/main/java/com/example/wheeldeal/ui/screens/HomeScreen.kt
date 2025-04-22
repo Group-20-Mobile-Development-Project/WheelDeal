@@ -8,6 +8,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -22,6 +23,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +35,8 @@ import com.example.wheeldeal.model.CarListing
 import com.example.wheeldeal.ui.components.CarCard
 import com.example.wheeldeal.ui.components.HeroSection
 import com.example.wheeldeal.ui.navigation.Screen
+import com.example.wheeldeal.ui.theme.PrimaryColor
+import com.example.wheeldeal.ui.theme.WhiteColor
 import com.example.wheeldeal.viewmodel.ListingState
 import com.example.wheeldeal.viewmodel.ListingViewModel
 import com.google.android.gms.location.LocationServices
@@ -77,15 +81,27 @@ fun HomeScreen(
         }
     }
 
-    Column(
-        Modifier
+    Box(
+        modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(PrimaryColor, WhiteColor)
+                )
+            )
     ) {
-        Spacer(Modifier.height(16.dp))
-        HeroSection(modifier = Modifier.padding(horizontal = 6.dp))
+        Column(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            Spacer(Modifier.height(16.dp))
+            HeroSection(modifier = Modifier.padding(horizontal = 6.dp))
 
-        // ─── Nearby ───────────────────────────────────────────────────────────────
+
+
+
+    // ─── Nearby ───────────────────────────────────────────────────────────────
         Spacer(Modifier.height(24.dp))
         HomeSection(
             icon               = Icons.Default.DirectionsCar,
@@ -129,6 +145,9 @@ fun HomeScreen(
         Spacer(Modifier.height(32.dp))
     }
 }
+}
+
+
 
 @Composable
 private fun HomeSection(
