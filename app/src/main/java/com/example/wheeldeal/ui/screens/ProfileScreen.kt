@@ -10,12 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.ContactMail
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
-// import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,15 +24,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.net.Uri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.wheeldeal.ui.theme.AppTypography
+import com.example.wheeldeal.ui.theme.FontIconColor
 import com.example.wheeldeal.ui.theme.PrimaryColor
 import com.example.wheeldeal.ui.theme.WhiteColor
 import com.example.wheeldeal.viewmodel.AuthViewModel
+import com.example.wheeldeal.viewmodel.UserData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
 
 @Composable
 fun ProfileScreen(
@@ -54,7 +51,7 @@ fun ProfileScreen(
     val showDeleteDialog = remember { mutableStateOf(false) }
     val showFeedbackDialog = remember { mutableStateOf(false) }
     val showContactUsDialog = remember { mutableStateOf(false) }
-
+    val showEditProfileDialog = remember { mutableStateOf(false) }
 
     if (user == null) {
         Box(
@@ -79,7 +76,7 @@ fun ProfileScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(80.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             Icon(
                 imageVector = Icons.Default.Person,
@@ -92,7 +89,7 @@ fun ProfileScreen(
                     .padding(24.dp)
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
                 text = "${user.firstName} ${user.lastName}",
@@ -100,51 +97,45 @@ fun ProfileScreen(
                 color = Color(0xFF003049)
             )
 
-            /*Text(
-                text = "Upload Image",
-                style = AppTypography.bodyMedium.copy(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp
-                ),
-                color = Color(0xFF003049)
-            )*/
-
-            Spacer(modifier = Modifier.height(75.dp))
+            Spacer(modifier = Modifier.height(85.dp))
 
             InfoCard(text = user.email, icon = Icons.Default.Email)
-            // Spacer(modifier = Modifier.height(16.dp))
-            // InfoCard(text = "Phone number", icon = Icons.Default.Phone)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            InfoCard(text = "Edit Profile", icon = Icons.Default.Edit) {
+                showEditProfileDialog.value = true
+            }
             Spacer(modifier = Modifier.height(16.dp))
 
             InfoCard(text = "Log out", icon = Icons.AutoMirrored.Filled.Logout) {
                 showLogoutDialog.value = true
             }
-
             Spacer(modifier = Modifier.height(16.dp))
 
             InfoCard(text = "Delete Account", icon = Icons.Default.Delete) {
                 showDeleteDialog.value = true
             }
-
             Spacer(modifier = Modifier.height(16.dp))
 
             InfoCard(text = "Leave a message", icon = Icons.Default.Email) {
                 showFeedbackDialog.value = true
             }
-
             Spacer(modifier = Modifier.height(16.dp))
 
-            InfoCard(text = "Contact Us", icon = Icons.Default.Phone) { // New InfoCard for Contact Us
+            InfoCard(text = "Contact Us", icon = Icons.Default.Phone) {
                 showContactUsDialog.value = true
             }
 
-            // -------- Contact Us Dialog --------
-            if (showContactUsDialog.value) {
-                ContactUsDialog(onDismiss = { showContactUsDialog.value = false })
+            if (showEditProfileDialog.value) {
+                EditProfileDialog(
+                    user = user,
+                    onDismiss = { showEditProfileDialog.value = false },
+                    onSave = { firstName, lastName, email ->
+                        viewModel.updateUserData(firstName, lastName, email)
+                    }
+                )
             }
 
-
-            // -------- Confirmation Dialogs --------
             if (showLogoutDialog.value) {
                 AlertDialog(
                     onDismissRequest = { showLogoutDialog.value = false },
@@ -182,7 +173,6 @@ fun ProfileScreen(
                     shape = RoundedCornerShape(16.dp)
                 )
             }
-
 
             if (showDeleteDialog.value) {
                 AlertDialog(
@@ -247,7 +237,6 @@ fun ProfileScreen(
                     },
                     text = {
                         FeedbackDialogContent(onSubmit = {
-                            // Handle submission
                             showFeedbackDialog.value = false
                             Toast.makeText(context, "Thank you for your feedback!", Toast.LENGTH_SHORT).show()
                         })
@@ -257,6 +246,52 @@ fun ProfileScreen(
                 )
             }
 
+            if (showContactUsDialog.value) {
+                AlertDialog(
+                    onDismissRequest = { showContactUsDialog.value = false },
+                    confirmButton = {
+                        TextButton(onClick = { showContactUsDialog.value = false }) {
+                            Text("Close", color = Color.Gray)
+                        }
+                    },
+                    title = {
+                        Text(
+                            "Contact Us",
+                            style = AppTypography.headlineLarge.copy(fontSize = 20.sp),
+                            color = Color(0xFF003049)
+                        )
+                    },
+                    text = {
+                        Column {
+                            Text(
+                                "For any inquiries, please reach out to us at:",
+                                style = AppTypography.bodyMedium,
+                                color = Color.DarkGray
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Email: support@wheeldeal.com",
+                                style = AppTypography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = Color(0xFF003049)
+                            )
+                            Text(
+                                "Phone: +358444333222",
+                                style = AppTypography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = Color(0xFF003049),
+                                modifier = Modifier.clickable {
+                                    val intent = Intent(Intent.ACTION_DIAL).apply {
+                                        data = "tel:+358444333222".toUri()
+                                    }
+                                    context.startActivity(intent)
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+                    },
+                    containerColor = Color.White,
+                    shape = RoundedCornerShape(16.dp)
+                )
+            }
         }
     }
 }
@@ -323,50 +358,80 @@ fun FeedbackDialogContent(onSubmit: () -> Unit) {
     }
 }
 
-
 @Composable
-fun ContactUsDialog(onDismiss: () -> Unit) {
-    val context = LocalContext.current
+fun EditProfileDialog(
+    user: UserData,
+    onDismiss: () -> Unit,
+    onSave: (String, String, String) -> Unit
+) {
+    var firstName by remember { mutableStateOf(user.firstName) }
+    var lastName by remember { mutableStateOf(user.lastName) }
+    var email by remember { mutableStateOf(user.email) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val emailPattern = remember { Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Close", color = Color.Gray)
-            }
-        },
         title = {
             Text(
-                "Contact Us",
+                "Edit Profile",
                 style = AppTypography.headlineLarge.copy(fontSize = 20.sp),
                 color = Color(0xFF003049)
             )
         },
         text = {
             Column {
-                Text(
-                    "For any inquiries, please reach out to us at:",
-                    style = AppTypography.bodyMedium,
-                    color = Color.DarkGray
+                if (errorMessage != null) {
+                    Text(errorMessage!!, color = MaterialTheme.colorScheme.error)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                OutlinedTextField(
+                    value = firstName,
+                    onValueChange = { firstName = it },
+                    label = { Text("First Name") },
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "Email: support@wheeldeal.com",
-                    style = AppTypography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color(0xFF003049)
+                OutlinedTextField(
+                    value = lastName,
+                    onValueChange = { lastName = it },
+                    label = { Text("Last Name") },
+                    modifier = Modifier.fillMaxWidth()
                 )
-                Text(
-                    "Phone: +358444333222",
-                    style = AppTypography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color(0xFF003049),
-                    modifier = Modifier.clickable {
-                        val intent = Intent(Intent.ACTION_DIAL).apply {
-                            data = Uri.parse("tel:+358444333222")
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email") },
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = !email.matches(emailPattern)
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    when {
+                        firstName.isBlank() || lastName.isBlank() -> {
+                            errorMessage = "Name fields cannot be empty"
                         }
-                        context.startActivity(intent)
+                        !email.matches(emailPattern) -> {
+                            errorMessage = "Invalid email format"
+                        }
+                        else -> {
+                            onSave(firstName, lastName, email)
+                            onDismiss()
+                        }
                     }
-                )
-                Spacer(modifier = Modifier.height(4.dp))
+                }
+            ) {
+                Text("Save", color = FontIconColor, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", color = Color.Gray)
             }
         },
         containerColor = Color.White,
