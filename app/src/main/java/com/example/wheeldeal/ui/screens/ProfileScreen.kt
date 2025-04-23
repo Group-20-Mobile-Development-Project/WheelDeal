@@ -130,8 +130,8 @@ fun ProfileScreen(
                 EditProfileDialog(
                     user = user,
                     onDismiss = { showEditProfileDialog.value = false },
-                    onSave = { firstName, lastName, email ->
-                        viewModel.updateUserData(firstName, lastName, email)
+                    onSave = { firstName, lastName ->
+                        viewModel.updateUserData(firstName, lastName)
                     }
                 )
             }
@@ -362,13 +362,11 @@ fun FeedbackDialogContent(onSubmit: () -> Unit) {
 fun EditProfileDialog(
     user: UserData,
     onDismiss: () -> Unit,
-    onSave: (String, String, String) -> Unit
+    onSave: (String, String) -> Unit
 ) {
     var firstName by remember { mutableStateOf(user.firstName) }
     var lastName by remember { mutableStateOf(user.lastName) }
-    var email by remember { mutableStateOf(user.email) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val emailPattern = remember { Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -400,13 +398,6 @@ fun EditProfileDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = !email.matches(emailPattern)
-                )
             }
         },
         confirmButton = {
@@ -416,11 +407,8 @@ fun EditProfileDialog(
                         firstName.isBlank() || lastName.isBlank() -> {
                             errorMessage = "Name fields cannot be empty"
                         }
-                        !email.matches(emailPattern) -> {
-                            errorMessage = "Invalid email format"
-                        }
                         else -> {
-                            onSave(firstName, lastName, email)
+                            onSave(firstName, lastName)
                             onDismiss()
                         }
                     }
