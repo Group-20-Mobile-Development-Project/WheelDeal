@@ -65,7 +65,7 @@ class AuthViewModel(private val repository: AuthRepository = AuthRepository()) :
                     if (doc.exists()) {
                         _userData.value = UserData(
                             uid = user.uid,
-                            email = user.email ?: "",
+                            email = doc.getString("email") ?: "",
                             firstName = doc.getString("firstName") ?: "",
                             lastName = doc.getString("lastName") ?: "",
                             profilePicUrl = doc.getString("profilePicUrl")
@@ -94,6 +94,25 @@ class AuthViewModel(private val repository: AuthRepository = AuthRepository()) :
 
     fun resetState() {
         _authState.value = AuthState.Idle
+    }
+
+    fun updateUserData(firstName: String, lastName: String) {
+        val currentUser = repository.currentUser
+        currentUser?.let { user ->
+            FirebaseFirestore.getInstance().collection("users").document(user.uid)
+                .update(
+                    mapOf(
+                        "firstName" to firstName,
+                        "lastName" to lastName
+                    )
+                )
+                .addOnSuccessListener {
+                    loadUserData()
+                }
+                .addOnFailureListener { e ->
+                    // Handle error if needed
+                }
+        }
     }
 }
 

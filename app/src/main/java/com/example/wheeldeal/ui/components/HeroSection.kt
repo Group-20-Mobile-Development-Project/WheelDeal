@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,19 +20,19 @@ import androidx.compose.ui.unit.sp
 @Preview
 @Composable
 fun HeroSection(
-    modifier: Modifier = Modifier  // Add this parameter
+    modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier  // Use the passed modifier first
+        modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .height(120.dp),
+            .height(150.dp)
+            .padding(horizontal = 16.dp),
         contentAlignment = Alignment.Center
     ) {
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(120.dp)
+                .height(150.dp)
                 .background(
                     brush = Brush.linearGradient(
                         colors = listOf(
@@ -71,35 +72,34 @@ fun HeroSection(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Create\nA Car Listing",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF0E2F56)
+                text = "Get Your\nDream CAR Here",
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    letterSpacing = 0.8.sp,
+                    color = Color(0xFF0E2F56)
+                )
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             Box(
                 modifier = Modifier
                     .background(
                         color = Color(0xFF0E2F56),
-                        shape = RoundedCornerShape(20.dp)
+                        shape = RoundedCornerShape(30.dp)
                     )
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .wrapContentSize(Alignment.TopCenter)
-                    .height(50.dp)
+                    .padding(horizontal = 24.dp, vertical = 12.dp)
             ) {
+                // Replace body1 with bodyMedium
                 Text(
                     text = "Wheel Deal",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = Color.White
+                    ),
                     textAlign = TextAlign.Center
                 )
             }
         }
     }
 }
+
 
 @Preview
 @Composable
