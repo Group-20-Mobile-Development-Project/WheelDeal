@@ -96,15 +96,14 @@ class AuthViewModel(private val repository: AuthRepository = AuthRepository()) :
         _authState.value = AuthState.Idle
     }
 
-    fun updateUserData(firstName: String, lastName: String, email: String) {
+    fun updateUserData(firstName: String, lastName: String) {
         val currentUser = repository.currentUser
         currentUser?.let { user ->
             FirebaseFirestore.getInstance().collection("users").document(user.uid)
                 .update(
                     mapOf(
                         "firstName" to firstName,
-                        "lastName" to lastName,
-                        "email" to email
+                        "lastName" to lastName
                     )
                 )
                 .addOnSuccessListener {

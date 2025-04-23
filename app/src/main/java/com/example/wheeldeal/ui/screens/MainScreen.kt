@@ -17,6 +17,8 @@ import com.example.wheeldeal.ui.components.*
 import com.example.wheeldeal.ui.navigation.Screen
 import com.example.wheeldeal.viewmodel.*
 import com.google.gson.Gson
+import android.net.Uri
+
 
 @Composable
 fun MainScreen(
@@ -36,6 +38,9 @@ fun MainScreen(
 
     val filterViewModel: BuyFilterViewModel         = viewModel()
     val notificationViewModel: NotificationViewModel = viewModel()
+    val listingViewModel: ListingViewModel     = viewModel()
+    val favoritesViewModel: FavoritesViewModel = viewModel()
+
 
     Scaffold(
         topBar = {
@@ -73,12 +78,17 @@ fun MainScreen(
                 composable(Screen.Buy.route) {
                     BuyScreen(
                         navController   = innerNav,
-                        filterViewModel = filterViewModel
+                        filterViewModel = filterViewModel,
+                        favoritesViewModel = favoritesViewModel
                     )
                 }
                 // 3) Favorites
                 composable(Screen.Favorites.route) {
-                    FavoritesScreen()
+                    FavoritesScreen(
+                        navController     = innerNav,
+                        listingViewModel  = listingViewModel,
+                        favoritesViewModel = favoritesViewModel
+                    )
                 }
                 // 4) Sell
                 composable(Screen.Sell.route) {
@@ -114,9 +124,10 @@ fun MainScreen(
                     )
                 }
                 // Car details
-                composable("carDetails/{listingJson}") { backStack ->
-                    val json    = backStack.arguments?.getString("listingJson") ?: ""
-                    val listing = Gson().fromJson(json, CarListing::class.java)
+                composable("carDetails/{carJson}") { backStack ->
+                    val json    = backStack.arguments?.getString("carJson") ?: ""
+                    val decoded = Uri.decode(json)
+                    val listing = Gson().fromJson(decoded, CarListing::class.java)
                     CarDetailsScreen(listing = listing, navController = innerNav)
                 }
                 // Car owner details
