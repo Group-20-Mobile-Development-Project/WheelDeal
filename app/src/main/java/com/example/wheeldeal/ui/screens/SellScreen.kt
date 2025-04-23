@@ -17,7 +17,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -27,7 +26,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.wheeldeal.model.CarListing
 import com.example.wheeldeal.ui.theme.FontIconColor
-import com.example.wheeldeal.ui.theme.PrimaryColor
 import com.example.wheeldeal.ui.theme.WhiteColor
 import com.example.wheeldeal.ui.theme.Poppins
 import androidx.compose.ui.text.font.FontWeight
@@ -48,7 +46,11 @@ import java.util.Locale
 import android.content.Intent
 import android.location.LocationManager
 import android.provider.Settings
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import com.example.wheeldeal.ui.theme.BackgroundWrapper
+import com.example.wheeldeal.ui.theme.Cabin
 
 
 @Composable
@@ -216,22 +218,6 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
             }
         }
     }
-    /*val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let {
-            val storageRepo = StorageRepository()
-            CoroutineScope(Dispatchers.IO).launch {
-                val result = storageRepo.uploadImage(uri)
-                withContext(Dispatchers.Main) {
-                    result.onSuccess { url ->
-                        photoUrl = url
-                        Toast.makeText(context, "Image uploaded", Toast.LENGTH_SHORT).show()
-                    }.onFailure {
-                        Toast.makeText(context, "Upload failed", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        }
-    }*/
 
     // Main layout with lazy column
     BackgroundWrapper {
@@ -276,97 +262,63 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
         if (showForm) {
             item {
                 Spacer(Modifier.height(12.dp))
-                // White card for the form (no tint)
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = WhiteColor)
+                    modifier = Modifier.fillMaxWidth(),
+                    shape    = RoundedCornerShape(16.dp),
+                    colors   = CardDefaults.cardColors(containerColor = WhiteColor)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        // Brand
+                    Column(
+                        modifier            = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // — Vehicle Info —
+                        Text("Vehicle Info", style = MaterialTheme.typography.titleLarge)
                         InputField("Brand", brand) { brand = it }
-                        // Model
                         InputField("Model", model) { model = it }
-                        // Year
                         DropdownField("Year", years, year) { year = it }
-                        // Category
                         DropdownField("Category", categoryOptions, category) { category = it }
-                        // Condition
+
+                        // — Specifications —
+                        Text("Specifications", style = MaterialTheme.typography.titleLarge)
                         DropdownField("Condition", conditionOptions, condition) { condition = it }
-                        // Transmission
                         DropdownField("Transmission", transmissions, transmission) { transmission = it }
-                        // Color
-                        InputField("Color", color) { color = it }
-                        // Engine
                         InputField("Engine Capacity (cc)", engineCapacity, KeyboardType.Number) { engineCapacity = it }
-                        // Fuel
                         DropdownField("Fuel Type", fuelTypes, fuelType) { fuelType = it }
-                        // Mileage
                         InputField("Avg Mileage", avgMileage, KeyboardType.Number) { avgMileage = it }
-                        // Odometer
                         InputField("Odometer (km)", odometer, KeyboardType.Number) { odometer = it }
-                        // Accidents
                         DropdownField("Accidents", accidentOptions, accidents) { accidents = it }
-                        // Seats
                         DropdownField("Seats", seatOptions, seats) { seats = it }
-                        // Last Inspection
                         InputField("Last Inspection", lastInspection) { lastInspection = it }
-                        // Ownership
                         DropdownField("Ownership", ownerships, ownership) { ownership = it }
-                        // Location
 
-                        Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                            InputField(
-                                label = "City",
-                                value = location,
-                                onValueChange = { location = it }
-                            )
-
-                            Button(
-                                onClick = {
-                                    locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = FontIconColor),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text("Find My City", color = WhiteColor)
-                            }
+                        // — Location & Pricing —
+                        Text("Location & Pricing", style = MaterialTheme.typography.titleLarge)
+                        InputField("City", location) { location = it }
+                        OutlinedButton(
+                            onClick = { locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.Place, contentDescription = null)
+                            Spacer(Modifier.width(4.dp))
+                            Text("Detect My City")
                         }
-
-
-
-
-
-                        // Price
                         InputField("Price", price, KeyboardType.Number) { price = it }
-                        // Negotiable
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Negotiable?", color = FontIconColor)
                             Checkbox(checked = negotiable, onCheckedChange = { negotiable = it })
+                            Spacer(Modifier.width(4.dp))
+                            Text("Negotiable?", color = FontIconColor)
                         }
-                        // Photo
-                        InputField("Photo URL", photoUrl) { photoUrl = it }
-                        /*
-                        Button(
-                        onClick = { launcher.launch("image/*") },
-                        colors = ButtonDefaults.buttonColors(containerColor = FontIconColor)
-                            ) {
-                             Text("Upload Image", color = WhiteColor)
-                            }
-                            Text("Photo URL: $photoUrl", style = MaterialTheme.typography.bodySmall, color = FontIconColor)*/
 
-                         */
-                        // Description
+                        // — Media & Description —
+                        Text("Media & Description", style = MaterialTheme.typography.titleLarge)
+                        InputField("Photo URL", photoUrl) { photoUrl = it }
                         InputField("Description", description, singleLine = false) { description = it }
 
-                        Spacer(Modifier.height(12.dp))
-
-                        // Submit
-                        Button (
+                        // Submit button
+                        Button(
                             onClick = handleSubmit,
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = FontIconColor)
+                            colors   = ButtonDefaults.buttonColors(containerColor = FontIconColor)
                         ) {
                             Text("Submit", color = WhiteColor)
                         }
@@ -389,7 +341,13 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                     .padding(top = 16.dp, bottom = 12.dp)
             )
         }
-        items((listingState as? ListingState.Success)?.listings?.filter { it.userId == currentUserId } ?: emptyList()) { listing ->
+        val userListings = (listingState as? ListingState.Success)
+            ?.listings
+            ?.filter { it.userId == currentUserId }
+            ?: emptyList()
+
+        items(userListings) { listing ->
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -399,81 +357,152 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column {
-                    // Image (cropped + consistent height)
-                    AsyncImage(
-                        model = listing.photos.firstOrNull() ?: "https://via.placeholder.com/300x200.png?text=No+Image",
-                        contentDescription = "Car Image",
-                        contentScale = ContentScale.Crop,
+                    // 1) Photo + location overlay
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp)
-                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                    )
-
-                    // Listing details below
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = "${listing.brand} ${listing.model}",
-                            color = FontIconColor,
-                            style = TextStyle(
-                                fontFamily = Poppins,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
-                            )
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = "Year: ${listing.year} · \$${"%,.2f".format(listing.price)}",
-                            color = FontIconColor,
-                            style = TextStyle(
-                                fontFamily = Poppins,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
+                            .height(200.dp)
+                    ) {
+                        AsyncImage(
+                            model = listing.photos.firstOrNull()
+                                ?: "https://via.placeholder.com/400x200.png?text=No+Image",
+                            contentDescription = "${listing.brand} ${listing.model}",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.matchParentSize()
                         )
 
-                        Row(Modifier.padding(top = 8.dp)) {
-                            IconButton(onClick = {
-                                // Fill form with listing data for edit
-                                brand = listing.brand
-                                model = listing.model
-                                year = listing.year.toString()
-                                category = listing.category
-                                condition = listing.condition
-                                transmission = listing.transmission
-                                color = listing.color
-                                engineCapacity = listing.engineCapacity.toString()
-                                fuelType = listing.fuelType
-                                avgMileage = listing.avgMileage.toString()
-                                odometer = listing.odometer.toString()
-                                accidents = listing.accidents.toString()
-                                seats = listing.seats.toString()
-                                lastInspection = listing.lastInspection
-                                ownership = listing.ownership
-                                location = listing.location
-                                price = listing.price.toString()
-                                negotiable = listing.negotiable
-                                photoUrl = listing.photos.firstOrNull() ?: ""
-                                description = listing.description
-                                editingListingId = listing.id
-                                showForm = true
-                                editMode = true
-                            }) {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = FontIconColor)
+                        // gradient for contrast
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f)),
+                                        startY = 120f
+                                    )
+                                )
+                        )
+
+                        // location pill
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(12.dp)
+                                .background(
+                                    color = Color.Black.copy(alpha = 0.5f),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Place,
+                                contentDescription = "Location",
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = listing.location,
+                                color = Color.White,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+
+                    // 2) White body with Brand·Model, Year·Price, Edit/Delete all on one line
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(WhiteColor)
+                            .padding(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            // Left: Brand+Model then Year·Price
+                            Column {
+                                Text(
+                                    text = "${listing.brand} ${listing.model}",
+                                    style = TextStyle(
+                                        fontFamily = Poppins,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize = 18.sp
+                                    ),
+                                    color = FontIconColor
+                                )
+                                Text(
+                                    text = "Year: ${listing.year} | Price: $${"%,.2f".format(listing.price)}",
+                                    style = TextStyle(
+                                        fontFamily = Cabin,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    ),
+                                    color = FontIconColor
+                                )
                             }
 
-                            IconButton(onClick = {
-                                viewModel.deleteListing(listing.id) { success ->
-                                    Toast.makeText(context, if (success) "Deleted" else "Failed", Toast.LENGTH_SHORT).show()
+                            // Right: Edit + Delete
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                IconButton(onClick = {
+                                    // populate form for edit
+                                    brand = listing.brand
+                                    model = listing.model
+                                    year = listing.year.toString()
+                                    category = listing.category
+                                    condition = listing.condition
+                                    transmission = listing.transmission
+                                    color = listing.color
+                                    engineCapacity = listing.engineCapacity.toString()
+                                    fuelType = listing.fuelType
+                                    avgMileage = listing.avgMileage.toString()
+                                    odometer = listing.odometer.toString()
+                                    accidents = listing.accidents.toString()
+                                    seats = listing.seats.toString()
+                                    lastInspection = listing.lastInspection
+                                    ownership = listing.ownership
+                                    location = listing.location
+                                    price = listing.price.toString()
+                                    negotiable = listing.negotiable
+                                    photoUrl = listing.photos.firstOrNull() ?: ""
+                                    description = listing.description
+                                    editingListingId = listing.id
+                                    showForm = true
+                                    editMode = true
+                                }) {
+                                    Icon(
+                                        Icons.Default.Edit,
+                                        contentDescription = "Edit",
+                                        tint = FontIconColor
+                                    )
                                 }
-                            }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                                IconButton(onClick = {
+                                    viewModel.deleteListing(listing.id) { success ->
+                                        Toast
+                                            .makeText(
+                                                context,
+                                                if (success) "Deleted" else "Delete failed",
+                                                Toast.LENGTH_SHORT
+                                            )
+                                            .show()
+                                    }
+                                }) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Delete",
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
         }
+
+
 
     }
 }
