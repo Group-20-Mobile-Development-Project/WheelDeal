@@ -3,6 +3,7 @@ package com.example.wheeldeal.ui.screens
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -35,6 +36,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun ProfileScreen(
@@ -333,6 +336,8 @@ fun InfoCard(
 @Composable
 fun FeedbackDialogContent(onSubmit: () -> Unit) {
     var feedbackText by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val firestore = FirebaseFirestore.getInstance()
 
     Column {
         OutlinedTextField(
@@ -347,9 +352,27 @@ fun FeedbackDialogContent(onSubmit: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
         Button(
             onClick = {
-                Log.d("Feedback", "Submitted: $feedbackText")
-                feedbackText = ""
-                onSubmit()
+                if (feedbackText.isNotBlank()) {
+                    val currentTime = System.currentTimeMillis()
+                    val formattedTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(currentTime)
+
+                    val feedback = hashMapOf(
+                        "message" to feedbackText,
+                        "timestamp" to formattedTime
+                    )
+                    firestore.collection("feedback")
+                        .add(feedback)
+                        .addOnSuccessListener {
+                            Toast.makeText(context, "Feedback submitted successfully!", Toast.LENGTH_SHORT).show()
+                            feedbackText = ""
+                            onSubmit()
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(context, "Failed to submit feedback: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                } else {
+                    Toast.makeText(context, "Feedback cannot be empty", Toast.LENGTH_SHORT).show()
+                }
             },
             shape = RoundedCornerShape(24.dp)
         ) {
