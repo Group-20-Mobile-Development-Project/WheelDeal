@@ -45,7 +45,7 @@ android {
 dependencies {
     // Jetpack Compose dependencies
     implementation(platform(libs.androidx.compose.bom))
-    implementation("androidx.compose.material:material:1.7.8")
+    implementation(libs.androidx.material)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -65,14 +65,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.playservices.location)
     implementation(libs.accompanist.permissions)
-
-
-
-
-
-
-
     implementation(libs.ui.tooling.preview)
+    implementation(libs.coil.compose)
+    implementation(libs.gson)
     implementation(libs.androidx.material.icons.extended)
 
 
@@ -81,13 +76,7 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.storage.ktx)
-
     implementation(libs.firebase.appcheck.debug)
-
-
-    implementation(libs.coil.compose)
-
-    implementation(libs.gson)
 
 
     // Google Maps dependency
