@@ -227,12 +227,6 @@ fun FavoriteCarCard(
                             color = FontIconColor.copy(alpha = 0.7f),
                             modifier = Modifier.padding(top = 6.dp)
                         )
-                        Text(
-                            text = "${car.avgMileage} KM",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = FontIconColor.copy(alpha = 0.7f),
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
                     }
 
                     Row(

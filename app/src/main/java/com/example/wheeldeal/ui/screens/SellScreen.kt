@@ -132,6 +132,10 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
         )
     }
 
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var deletingListingId by remember { mutableStateOf<String?>(null) }
+
+
     // Dropdown data
     val conditionOptions = listOf("New", "Used")
     val years = (2000..2025).map { it.toString() }
@@ -786,13 +790,9 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                                         )
                                     }
                                     IconButton(onClick = {
-                                        viewModel.deleteListing(listing.id) { success ->
-                                            Toast.makeText(
-                                                context,
-                                                if (success) "Deleted" else "Delete failed",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
+                                        // instead of calling deleteListing() immediately:
+                                        deletingListingId = listing.id
+                                        showDeleteDialog     = true
                                     }) {
                                         Icon(
                                             Icons.Default.Delete,
@@ -807,8 +807,46 @@ fun SellScreen(viewModel: ListingViewModel = viewModel()) {
                 }
             }
         }
+        // 3️⃣ Add this *after* your LazyColumn, but still inside BackgroundWrapper
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = {
+                    Text("Delete Listing?", fontWeight = FontWeight.Bold)
+                },
+                text = {
+                    Text("This listing will be permanently removed and cannot be undone.")
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        // actually delete
+                        deletingListingId?.let { id ->
+                            viewModel.deleteListing(id) { success ->
+                                Toast.makeText(
+                                    context,
+                                    if (success) "Listing deleted" else "Delete failed",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                        showDeleteDialog = false
+                    }) {
+                        Text("Delete", color = Color.Red)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Cancel")
+                    }
+                },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(16.dp)
+            )
+        }
     }
 }
+
+
 
 @Composable
 fun FormSectionHeader(
