@@ -52,7 +52,7 @@ fun CarDetailsScreen(
                 // —— Header ——
                 Text(
                     text = "See the Details Of The Car",
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.headlineLarge,
                     color = FontIconColor,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )

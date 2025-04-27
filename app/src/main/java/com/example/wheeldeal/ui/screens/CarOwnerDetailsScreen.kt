@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -105,7 +106,7 @@ fun CarOwnerDetailsScreen(
                                 fontSize = 26.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = FontIconColor
-                            , )
+                            )
                             Text(
                                 text = "€${"%,.0f".format(listing.price)}",
                                 fontFamily = Poppins,
@@ -143,7 +144,25 @@ fun CarOwnerDetailsScreen(
                     }
                 }
             }
-                    // Owner Info Section
+
+            // Owner Info Section with improved styling
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = WhiteColor)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Owner Information",
+                        fontFamily = Poppins,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = FontIconColor,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -184,64 +203,68 @@ fun CarOwnerDetailsScreen(
                     // Contact Info
                     InfoField(label = "E Mail ID", value = email.ifEmpty { "N/A" })
                     InfoField(label = "Location", value = listing.location)
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // Action Buttons
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    runCatching {
-                                        val chatId = ChatRepository().createOrGetChatId(listing.userId)
-                                        navController.navigate(Screen.Chat.createRoute(chatId, listing.userId))
-                                    }
-                                }
-                            },
-                            enabled = !isOwnListing,
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(56.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = FontIconColor),
-                            shape = RoundedCornerShape(24.dp)
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Chat,
-                                contentDescription = "Chat",
-                                tint = WhiteColor
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Chat", fontWeight = FontWeight.Bold, color = WhiteColor)
-                        }
-
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        OutlinedButton(
-                            onClick = { /* TODO: Call */ },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(56.dp),
-                            shape = RoundedCornerShape(24.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = FontIconColor),
-                            border = ButtonDefaults.outlinedButtonBorder
-                        ) {
-                            Icon(Icons.Default.Call, contentDescription = "Call", tint = FontIconColor)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Call", fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    if (isOwnListing) {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "This is your listing — you can't chat with yourself!",
-                            color = Color.Gray,
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
-                    }
                 }
+            }
+
+            // Action Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            runCatching {
+                                val chatId = ChatRepository().createOrGetChatId(listing.userId)
+                                navController.navigate(Screen.Chat.createRoute(chatId, listing.userId))
+                            }
+                        }
+                    },
+                    enabled = !isOwnListing,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = FontIconColor),
+                    shape = RoundedCornerShape(24.dp)
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Chat,
+                        contentDescription = "Chat",
+                        tint = WhiteColor
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Chat", fontWeight = FontWeight.Bold, color = WhiteColor)
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                OutlinedButton(
+                    onClick = { /* TODO: Call */ },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = FontIconColor),
+                    border = ButtonDefaults.outlinedButtonBorder
+                ) {
+                    Icon(Icons.Default.Call, contentDescription = "Call", tint = FontIconColor)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Call", fontWeight = FontWeight.Bold)
+                }
+            }
+
+            if (isOwnListing) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "This is your listing — you can't chat with yourself!",
+                    color = Color.Gray,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
 
@@ -285,15 +308,15 @@ fun InfoField(
         readOnly = true,
         modifier = Modifier
             .fillMaxWidth()
-        .padding(vertical = 6.dp),
-    label = {
-        Text(text = label, color = FontIconColor, fontFamily = Poppins)
-    },
-    shape = RoundedCornerShape(24.dp),
-    colors = OutlinedTextFieldDefaults.colors(
-        unfocusedBorderColor = FontIconColor,
-        focusedBorderColor = PrimaryColor,
-        cursorColor = PrimaryColor
-    )
+            .padding(vertical = 6.dp),
+        label = {
+            Text(text = label, color = FontIconColor, fontFamily = Poppins)
+        },
+        shape = RoundedCornerShape(24.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedBorderColor = FontIconColor,
+            focusedBorderColor = PrimaryColor,
+            cursorColor = PrimaryColor
+        )
     )
 }
