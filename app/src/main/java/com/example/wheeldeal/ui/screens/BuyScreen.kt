@@ -20,10 +20,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Sort
+import androidx.compose.foundation.lazy.grid.items as gridItems main
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.gson.Gson
+
 import com.example.wheeldeal.model.CarListing
 import com.example.wheeldeal.ui.components.CarCard
 import com.example.wheeldeal.ui.navigation.Screen
@@ -102,7 +105,25 @@ fun BuyScreen(
                         color = DarkBlue.copy(alpha = 0.7f)
                     )
                 )
+=======
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f))
+                .padding(16.dp)
+        ) {
+            // Toggle filter section
+            Button(
+                onClick = { filterViewModel.toggleFilterSection() },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = DarkBlue,
+                    contentColor = WhiteColor
+                )
+            ) {
+                Text(if (filters.showFilters) "Hide Filters" else "Show Filters")
             }
+            Spacer(Modifier.height(12.dp))
 
             // Filter and Sort row
             Row(
@@ -340,10 +361,79 @@ fun BuyScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = DarkBlue)
+            if (filters.showFilters) {
+                BrandInput(
+                    brand = localBrand,
+                    onBrandChanged = { localBrand = it }
+                )
+
+                FilterDropdown("Category", listOf(
+                    "Sedan", "Hatchback", "SUV", "Coupe",
+                    "Convertible", "Van", "Truck"
+                ), localCategory) {
+                    localCategory = it
+                }
+                FilterDropdown("Transmission", listOf("Automatic", "Manual"), localTransmission) {
+                    localTransmission = it
+                }
+                FilterDropdown("Fuel Type", listOf("Petrol", "Diesel", "Electric", "Hybrid"), localFuelType) {
+                    localFuelType = it
+                }
+                FilterDropdown("Year", (2000..2025).map { it.toString() }, localYear) {
+                    localYear = it
+                }
+
+                Text("Budget: $${localBudget.toInt()}")
+                Slider(
+                    value = localBudget,
+                    onValueChange = { localBudget = it },
+                    valueRange = 1_000f..1_000_000f,
+                    steps = 20
+                )
+
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    OutlinedButton({
+                        localBrand = ""
+                        localCategory = ""
+                        localTransmission = ""
+                        localFuelType = ""
+                        localYear = ""
+                        localBudget = 50_000f
+                    }) {
+                        Text("Clear")
+                    }
+                    Button({
+                        filterViewModel.updateAllFilters(
+                            brand        = localBrand,
+                            category     = localCategory,
+                            transmission = localTransmission,
+                            fuelType     = localFuelType,
+                            year         = localYear,
+                            budget       = localBudget
+                        )
+                    }) {
+                        Text("Apply Filters")
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+            }
+
+            // Content based on state
+            when (state) {
+                ListingState.Loading -> Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+
                 }
 
                 is ListingState.Error -> {
                     val msg = (state as ListingState.Error).message
+
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -363,10 +453,18 @@ fun BuyScreen(
                                 color = MaterialTheme.colorScheme.error
                             )
                         }
+
+                    Box(
+                        Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Error loading listings: $msg", color = MaterialTheme.colorScheme.error)
+
                     }
                 }
 
                 is ListingState.Success -> {
+
                     val all = (state as ListingState.Success).listings
                     val filtered = filterViewModel.filterListings(all)
 
@@ -436,6 +534,53 @@ fun BuyScreen(
 }
 
 // Original BrandInput function - kept exactly the same
+
+                    val all       = (state as ListingState.Success).listings
+                    val filtered  = filterViewModel.filterListings(all)
+
+                    if (filtered.isEmpty()) {
+                        Box(
+                            Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("No listings found.")
+                        }
+                    } else {
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(2),
+                            verticalArrangement   = Arrangement.spacedBy(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding        = PaddingValues(bottom = 16.dp)
+                        ) {
+                            gridItems(filtered) { listing ->
+                                CarCard(
+                                    listing         = listing,
+                                    isFavorite      = favIds.contains(listing.id),
+                                    onToggleFavorite = {
+                                        favoritesViewModel.toggleFavorite(listing.id)
+                                        Toast.makeText(
+                                            context,
+                                            if (favIds.contains(listing.id))
+                                                "Removed from favorites"
+                                            else
+                                                "Added to favorites",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    },
+                                    onClick = {
+                                        val json = Gson().toJson(listing)
+                                        navController.navigate(Screen.CarDetails.createRoute(json))
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun BrandInput(
     brand: String,

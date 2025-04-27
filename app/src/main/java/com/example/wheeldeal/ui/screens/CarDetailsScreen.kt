@@ -271,20 +271,20 @@ fun CarDetailsScreen(
                         val json = Gson().toJson(listing)
                         navController.navigate(Screen.CarOwnerDetails.createRoute(json))
                     },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = FontIconColor,
-                    contentColor = WhiteColor
-                )
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = FontIconColor,
+                        contentColor = WhiteColor
+                    )
                 ) {
-                Icon(Icons.AutoMirrored.Filled.Message, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("Contact Owner")
-            }
+                    Icon(Icons.AutoMirrored.Filled.Message, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Contact Owner")
+                }
             }
         }
 
-        }
+    }
 }
 
 @Composable
