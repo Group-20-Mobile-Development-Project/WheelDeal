@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DriveEta
 import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material.icons.filled.Place
@@ -40,282 +39,251 @@ fun CarDetailsScreen(
     val context = LocalContext.current
     val scroll = rememberScrollState()
 
-    Scaffold(
-        topBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                    Text(
-                        text = "Car Details",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
-                }
-            }
-        }
-    ) { paddingValues ->
-        BackgroundWrapper {
+    BackgroundWrapper {
+        Column(modifier = Modifier.fillMaxSize()) {
+
+            // Scrollable content
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
+                    .weight(1f)
+                    .padding(16.dp)
+                    .verticalScroll(scroll)
             ) {
+                // —— Header ——
+                Text(
+                    text = "See the Details Of The Car",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = FontIconColor,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+                Spacer(Modifier.height(16.dp))
 
-                // Scrollable content
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(16.dp)
-                        .verticalScroll(scroll)
+                // —— Car Image ——
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(8.dp),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    // —— Header ——
-                    Text(
-                        text = "See the Details Of The Car",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = FontIconColor,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                    Spacer(Modifier.height(16.dp))
-
-                    // —— Car Image ——
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(8.dp),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        AsyncImage(
-                            model = listing.photos.firstOrNull(),
-                            contentDescription = "Car Image",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(250.dp),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                    Spacer(Modifier.height(16.dp))
-
-                    // —— Title ——
-                    Text(
-                        text = "${listing.brand} ${listing.model} (${listing.year})",
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = FontIconColor,
+                    AsyncImage(
+                        model = listing.photos.firstOrNull(),
+                        contentDescription = "Car Image",
                         modifier = Modifier
                             .fillMaxWidth()
-                            .wrapContentWidth(Alignment.CenterHorizontally)
+                            .height(250.dp),
+                        contentScale = ContentScale.Crop
                     )
-                    Spacer(Modifier.height(24.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        // mileage
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Speed, contentDescription = null, tint = FontIconColor)
-                            Spacer(Modifier.width(4.dp))
-                            Text("${listing.avgMileage} KM", color = FontIconColor)
-                        }
-                        // fuel
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.LocalGasStation,
-                                contentDescription = null,
-                                tint = FontIconColor
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            Text(listing.fuelType, color = FontIconColor)
-                        }
-                        // location
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Place, contentDescription = null, tint = FontIconColor)
-                            Spacer(Modifier.width(4.dp))
-                            Text(listing.location, color = FontIconColor)
-                        }
-                    }
-                    Spacer(Modifier.height(24.dp))
-
-                    // —— Technical Specifications ——
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(4.dp),
-                        colors = CardDefaults.cardColors(containerColor = WhiteColor)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                "Technical Specifications",
-                                style = MaterialTheme.typography.headlineMedium,
-                                color = FontIconColor
-                            )
-                            Spacer(Modifier.height(12.dp))
-
-                            // row 1
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                SpecificationItem("Category", listing.category)
-                                SpecificationItem("Condition", listing.condition)
-                                SpecificationItem("Color", listing.color)
-                            }
-                            Spacer(Modifier.height(12.dp))
-
-                            // row 2
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                SpecificationItem("Transmission", listing.transmission)
-                                SpecificationItem("Engine", "${listing.engineCapacity} cc")
-                                SpecificationItem("Seats", listing.seats.toString())
-                            }
-                            Spacer(Modifier.height(12.dp))
-
-                            // row 3
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                SpecificationItem("Odometer", "${listing.odometer} km")
-                                SpecificationItem(
-                                    "Accidents",
-                                    if (listing.accidents > 0) "${listing.accidents}" else "None"
-                                )
-                                SpecificationItem("Ownership", listing.ownership)
-                            }
-                            Spacer(Modifier.height(12.dp))
-
-                            // row 4
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                SpecificationItem("Last Inspection", listing.lastInspection)
-                                SpecificationItem(
-                                    "Negotiable",
-                                    if (listing.negotiable) "Yes" else "No"
-                                )
-                                Spacer(Modifier.width(100.dp))
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(24.dp))
-
-                    // —— Description ——
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(4.dp),
-                        colors = CardDefaults.cardColors(containerColor = WhiteColor)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                "Description",
-                                style = MaterialTheme.typography.headlineMedium,
-                                color = FontIconColor
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                text = listing.description,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = FontIconColor,
-                                lineHeight = 20.sp
-                            )
-                        }
-                    }
-                    Spacer(Modifier.height(24.dp))
-
-                    // —— Price ——
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(4.dp),
-                        colors = CardDefaults.cardColors(containerColor = WhiteColor)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                "Price",
-                                style = MaterialTheme.typography.headlineMedium,
-                                color = FontIconColor,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "$${"%,.0f".format(listing.price)}",
-                                    style = MaterialTheme.typography.headlineLarge,
-                                    color = FontIconColor
-                                )
-                                Text(
-                                    text = if (listing.negotiable) "Negotiable" else "Non-negotiable",
-                                    color = if (listing.negotiable) Color(0xFF388E3C) else Color(
-                                        0xFFD32F2F
-                                    ),
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(24.dp))
                 }
+                Spacer(Modifier.height(16.dp))
 
-                // —— Action Buttons ——
-                Row(
+                // —— Title ——
+                Text(
+                    text = "${listing.brand} ${listing.model} (${listing.year})",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = FontIconColor,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .wrapContentWidth(Alignment.CenterHorizontally)
+                )
+                Spacer(Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    // Filled “Book Test Drive”
-                    Button(
-                        onClick = {
-                            Toast.makeText(context, "Test Drive Booked!", Toast.LENGTH_SHORT).show()
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = FontIconColor
-                        ),
-                        border = BorderStroke(1.dp, FontIconColor),
-                        shape = RoundedCornerShape(24.dp) // match pill shape
-                    ) {
-                        Icon(Icons.Default.DriveEta, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Book Test Drive")
+                    // mileage
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Speed, contentDescription = null, tint = FontIconColor)
+                        Spacer(Modifier.width(4.dp))
+                        Text("${listing.avgMileage} KM", color = FontIconColor)
                     }
-
-                    Spacer(Modifier.width(16.dp))
-
-                    // Outlined “Contact Owner”
-                    Button(
-                        onClick = {
-                            val json = Gson().toJson(listing)
-                            navController.navigate(Screen.CarOwnerDetails.createRoute(json))
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = FontIconColor,
-                            contentColor = WhiteColor
+                    // fuel
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.LocalGasStation,
+                            contentDescription = null,
+                            tint = FontIconColor
                         )
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.Message, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Contact Owner")
+                        Spacer(Modifier.width(4.dp))
+                        Text(listing.fuelType, color = FontIconColor)
                     }
+                    // location
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Place, contentDescription = null, tint = FontIconColor)
+                        Spacer(Modifier.width(4.dp))
+                        Text(listing.location, color = FontIconColor)
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+
+                // —— Technical Specifications ——
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(4.dp),
+                    colors = CardDefaults.cardColors(containerColor = WhiteColor)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            "Technical Specifications",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = FontIconColor
+                        )
+                        Spacer(Modifier.height(12.dp))
+
+                        // row 1
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            SpecificationItem("Category", listing.category)
+                            SpecificationItem("Condition", listing.condition)
+                            SpecificationItem("Color", listing.color)
+                        }
+                        Spacer(Modifier.height(12.dp))
+
+                        // row 2
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            SpecificationItem("Transmission", listing.transmission)
+                            SpecificationItem("Engine", "${listing.engineCapacity} cc")
+                            SpecificationItem("Seats", listing.seats.toString())
+                        }
+                        Spacer(Modifier.height(12.dp))
+
+                        // row 3
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            SpecificationItem("Odometer", "${listing.odometer} km")
+                            SpecificationItem(
+                                "Accidents",
+                                if (listing.accidents > 0) "${listing.accidents}" else "None"
+                            )
+                            SpecificationItem("Ownership", listing.ownership)
+                        }
+                        Spacer(Modifier.height(12.dp))
+
+                        // row 4
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            SpecificationItem("Last Inspection", listing.lastInspection)
+                            SpecificationItem(
+                                "Negotiable",
+                                if (listing.negotiable) "Yes" else "No"
+                            )
+                            Spacer(Modifier.width(100.dp))
+                        }
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+
+                // —— Description ——
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(4.dp),
+                    colors = CardDefaults.cardColors(containerColor = WhiteColor)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            "Description",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = FontIconColor
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = listing.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = FontIconColor,
+                            lineHeight = 20.sp
+                        )
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+
+                // —— Price ——
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(4.dp),
+                    colors = CardDefaults.cardColors(containerColor = WhiteColor)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            "Price",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = FontIconColor,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "$${"%,.0f".format(listing.price)}",
+                                style = MaterialTheme.typography.headlineLarge,
+                                color = FontIconColor
+                            )
+                            Text(
+                                text = if (listing.negotiable) "Negotiable" else "Non-negotiable",
+                                color = if (listing.negotiable) Color(0xFF388E3C) else Color(
+                                    0xFFD32F2F
+                                ),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+            }
+
+            // —— Action Buttons ——
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Filled “Book Test Drive”
+                Button(
+                    onClick = {
+                        Toast.makeText(context, "Test Drive Booked!", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = FontIconColor
+                    ),
+                    border = BorderStroke(1.dp, FontIconColor),
+                    shape = RoundedCornerShape(24.dp) // match pill shape
+                ) {
+                    Icon(Icons.Default.DriveEta, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Book Test Drive")
+                }
+
+                Spacer(Modifier.width(16.dp))
+
+                // Outlined “Contact Owner”
+                Button(
+                    onClick = {
+                        val json = Gson().toJson(listing)
+                        navController.navigate(Screen.CarOwnerDetails.createRoute(json))
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = FontIconColor,
+                        contentColor = WhiteColor
+                    )
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.Message, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Contact Owner")
                 }
             }
         }
+
     }
 }
 
