@@ -33,7 +33,7 @@ val AppTypography = Typography(
         fontSize = 20.sp
     ),
     bodyMedium = TextStyle(
-        fontFamily = Cabin,
+        fontFamily = Poppins,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp
     ),

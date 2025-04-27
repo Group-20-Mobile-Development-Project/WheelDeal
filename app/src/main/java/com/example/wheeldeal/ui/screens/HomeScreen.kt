@@ -18,16 +18,21 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.DriveEta
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -35,6 +40,8 @@ import com.example.wheeldeal.model.CarListing
 import com.example.wheeldeal.ui.components.CarCard
 import com.example.wheeldeal.ui.components.HeroSection
 import com.example.wheeldeal.ui.navigation.Screen
+import com.example.wheeldeal.ui.theme.FontIconColor
+import com.example.wheeldeal.ui.theme.Poppins
 import com.example.wheeldeal.ui.theme.PrimaryColor
 import com.example.wheeldeal.ui.theme.WhiteColor
 import com.example.wheeldeal.viewmodel.ListingState
@@ -42,6 +49,7 @@ import com.example.wheeldeal.viewmodel.ListingViewModel
 import com.google.android.gms.location.LocationServices
 import com.google.gson.Gson
 import java.util.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
@@ -49,38 +57,42 @@ fun HomeScreen(
     innerNav: NavHostController
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
-    // 1) location‐based
+    // State management
     var permissionDenied by remember { mutableStateOf(false) }
     val nearbyCars by viewModel.nearbyListings.collectAsState()
-
-    // 2) full master list
     val listingState by viewModel.listingState.collectAsState()
-    val allCars: List<CarListing> = when (listingState) {
+
+    // Process listings based on current state
+    val allCars = when (listingState) {
         is ListingState.Success -> (listingState as ListingState.Success).listings
-        else                 -> emptyList()
+        else -> emptyList()
     }
 
-    // permission launcher
+    // Car categories extracted for reuse
+    val suvCars = remember(allCars) { allCars.filter { it.category.equals("SUV", true) } }
+    val sedanCars = remember(allCars) { allCars.filter { it.category.equals("Sedan", true) } }
+    val hatchbackCars = remember(allCars) { allCars.filter { it.category.equals("Hatchback", true) } }
+
+    // Permission launcher
     val locationLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         permissionDenied = !granted
-        if (granted) fetchUserCity(context, viewModel)
-    }
-
-    // on first compose, check or ask
-    LaunchedEffect(Unit) {
-        if (ContextCompat.checkSelfPermission(
-                context, Manifest.permission.ACCESS_FINE_LOCATION
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-        ) {
-            fetchUserCity(context, viewModel)
-        } else {
-            locationLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        if (granted) {
+            coroutineScope.launch {
+                fetchUserLocation(context, viewModel)
+            }
         }
     }
 
+    // Check location permission on first composition
+    LaunchedEffect(Unit) {
+        checkAndRequestLocationPermission(context, locationLauncher, viewModel)
+    }
+
+    // UI Structure
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -98,57 +110,68 @@ fun HomeScreen(
             Spacer(Modifier.height(16.dp))
             HeroSection(modifier = Modifier.padding(horizontal = 6.dp))
 
+            // Nearby Cars Section
+            Spacer(Modifier.height(24.dp))
+            HomeSection(
+                icon = Icons.Default.LocationOn,  // Changed icon
+                title = "Nearby Cars",
+                cars = nearbyCars,
+                innerNav = innerNav,
+                permissionDenied = permissionDenied,
+                onRequestPermission = { locationLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) },
+                titleFontSize = 24.sp,
+                iconTint = Color(0xFF38AD00),
+                tittleColor = FontIconColor,
+                tittleFont = Poppins
+            )
 
+            // SUV Section
+            Spacer(Modifier.height(32.dp))
+            HomeSection(
+                icon = Icons.Default.DriveEta,
+                title = "SUV Cars",
+                cars = suvCars,
+                innerNav = innerNav,
+                titleFontSize = 22.sp,
+                iconTint = Color(0xFF3D5AFE) ,
+                tittleColor = FontIconColor,
+                tittleFont = Poppins
+            )
 
+            // Sedan Section
+            Spacer(Modifier.height(32.dp))
+            HomeSection(
+                icon = Icons.Default.DirectionsCar,  // Kept original icon
+                title = "Sedan Cars",
+                cars = sedanCars,
+                innerNav = innerNav,
+                titleFontSize = 22.sp,
+                iconTint = Color(0xFF00BFA5),
+                tittleColor = FontIconColor,
+                tittleFont = Poppins
+            )
 
-    // ─── Nearby ───────────────────────────────────────────────────────────────
-        Spacer(Modifier.height(24.dp))
-        HomeSection(
-            icon               = Icons.Default.DirectionsCar,
-            title              = "Nearby Cars",
-            cars               = nearbyCars,
-            innerNav           = innerNav,
-            permissionDenied   = permissionDenied,
-            onRequestPermission= { locationLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }
-        )
+            // Hatchback Section
+            Spacer(Modifier.height(32.dp))
+            HomeSection(
+                icon = Icons.Default.DirectionsCar,  // Changed icon
+                title = "Hatchback Cars",
+                cars = hatchbackCars,
+                innerNav = innerNav,
+                titleFontSize = 22.sp,
+                iconTint = Color(0xFFFF6D00) ,
+                tittleColor = FontIconColor,
+                tittleFont = Poppins
+            )
 
-        // ─── SUV ─────────────────────────────────────────────────────────────────
-        Spacer(Modifier.height(32.dp))
-        HomeSection(
-            icon     = Icons.Default.FilterList,
-            title    = "SUV Cars",
-            subtitle = "Approved and inspected",
-            cars     = allCars.filter { it.category.equals("SUV", true) },
-            innerNav = innerNav
-        )
-
-        // ─── Sedan ──────────────────────────────────────────────────────────────
-        Spacer(Modifier.height(32.dp))
-        HomeSection(
-            icon     = Icons.Default.FilterList,
-            title    = "Sedan Cars",
-            subtitle = "Approved and inspected",
-            cars     = allCars.filter { it.category.equals("Sedan", true) },
-            innerNav = innerNav
-        )
-
-        // ─── Hatchback ──────────────────────────────────────────────────────────
-        Spacer(Modifier.height(32.dp))
-        HomeSection(
-            icon     = Icons.Default.FilterList,
-            title    = "Hatchback Cars",
-            subtitle = "Approved and inspected",
-            cars     = allCars.filter { it.category.equals("Hatchback", true) },
-            innerNav = innerNav
-        )
-
-        Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(32.dp))
+        }
     }
 }
-}
 
-
-
+/**
+ * Displays a section of car listings with a title and optional subtitle
+ */
 @Composable
 private fun HomeSection(
     icon: ImageVector,
@@ -157,21 +180,36 @@ private fun HomeSection(
     innerNav: NavHostController,
     subtitle: String? = null,
     permissionDenied: Boolean = false,
-    onRequestPermission: (() -> Unit)? = null
+    onRequestPermission: (() -> Unit)? = null,
+    titleFontSize: TextUnit = 20.sp,  // Added parameter
+    iconTint: Color = MaterialTheme.colorScheme.primary,  // Added parameter
+    tittleColor: Color,
+    tittleFont: FontFamily
 ) {
-    // header
+    // Section header
     Row(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-        Spacer(Modifier.width(8.dp))
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(30.dp)  // Enhanced icon size
+        )
+        Spacer(Modifier.width(10.dp))  // Slightly more spacing
         Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleLarge)
+            Text(
+                text = title,
+                fontSize = titleFontSize,
+                fontWeight = FontWeight.Bold,  // Enhanced font weight
+                letterSpacing = 0.5.sp  // Added letter spacing
+            )
             subtitle?.let {
-                Text(it,
+                Text(
+                    text = it,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
@@ -179,95 +217,171 @@ private fun HomeSection(
         }
     }
 
-    // content
+    // Section content
     when {
-        // only for Nearby section
+        // Permission denied state (only for Nearby section)
         permissionDenied && onRequestPermission != null -> {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Location permission required")
-                    Spacer(Modifier.height(8.dp))
-                    Button(onClick = onRequestPermission) { Text("Grant") }
-                }
-            }
+            PermissionRequestSection(onRequestPermission)
         }
-
+        // Empty state
         cars.isEmpty() -> {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No cars found")
-            }
+            EmptyStateSection()
         }
-
+        // Cars available state
         else -> {
-            LazyRow(
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(cars.take(5)) { car ->
-                    CarCard(
-                        listing = car,
-                        isFavorite = false,
-                        onToggleFavorite = { /*…*/ },
-                        onClick = {
-                            val payload = Uri.encode(Gson().toJson(car))
-                            innerNav.navigate("carDetails/$payload") { launchSingleTop = true }
-                        },
-                        modifier = Modifier.width(150.dp)
-                    )
-                }
-                // centered “See more →”
-                item {
-                    Box(
-                        Modifier
-                            .width(150.dp)
-                            .height(280.dp)
-                            .clickable { innerNav.navigate(Screen.Buy.route) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("See more",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            Icon(Icons.Default.ArrowForward,
-                                contentDescription = "See more",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                }
+            CarListRow(cars, innerNav)
+        }
+    }
+}
+
+/**
+ * Shows permission request UI when location permission is denied
+ */
+@Composable
+private fun PermissionRequestSection(onRequestPermission: () -> Unit) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("Location permission required")
+            Spacer(Modifier.height(8.dp))
+            Button(onClick = onRequestPermission) {
+                Text("Grant")
             }
         }
     }
 }
 
+/**
+ * Shows empty state when no cars are available in a section
+ */
+@Composable
+private fun EmptyStateSection() {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("No cars found")
+    }
+}
+
+/**
+ * Displays a horizontal row of car cards with a "See more" button
+ */
+@Composable
+private fun CarListRow(cars: List<CarListing>, innerNav: NavHostController) {
+    LazyRow(
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(cars.take(5)) { car ->
+            CarCard(
+                listing = car,
+                isFavorite = false,
+                onToggleFavorite = { /* No functionality changes as requested */ },
+                onClick = {
+                    navigateToCarDetails(car, innerNav)
+                },
+                modifier = Modifier.width(250.dp)
+            )
+        }
+
+        // "See more" button
+        item {
+            SeeMoreButton(innerNav)
+        }
+    }
+}
+
+/**
+ * Button to navigate to the full listing page
+ */
+@Composable
+private fun SeeMoreButton(innerNav: NavHostController) {
+    Box(
+        Modifier
+            .width(150.dp)
+            .height(280.dp)
+            .clickable { innerNav.navigate(Screen.Buy.route) },
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "See more",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp  // Enhanced font size
+                )
+            )
+            Spacer(Modifier.width(4.dp))
+            Icon(
+                imageVector = Icons.Default.ArrowForward,
+                contentDescription = "See more",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+/**
+ * Check and request location permission if necessary
+ */
+private fun checkAndRequestLocationPermission(
+    context: Context,
+    locationLauncher: androidx.activity.result.ActivityResultLauncher<String>,
+    viewModel: ListingViewModel
+) {
+    val hasPermission = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+    if (hasPermission) {
+        fetchUserLocation(context, viewModel)
+    } else {
+        locationLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+}
+
+/**
+ * Navigate to car details screen with car data
+ */
+private fun navigateToCarDetails(car: CarListing, innerNav: NavHostController) {
+    val payload = Uri.encode(Gson().toJson(car))
+    innerNav.navigate("carDetails/$payload") {
+        launchSingleTop = true
+    }
+}
+
+/**
+ * Fetch user location and load nearby listings
+ */
 @SuppressLint("MissingPermission")
-private fun fetchUserCity(context: Context, viewModel: ListingViewModel) {
+private fun fetchUserLocation(context: Context, viewModel: ListingViewModel) {
     val client = LocationServices.getFusedLocationProviderClient(context)
     client.lastLocation
-        .addOnSuccessListener { loc ->
-            loc?.let {
+        .addOnSuccessListener { location ->
+            location?.let {
                 runCatching {
-                    val geo = Geocoder(context, Locale.getDefault())
-                    geo.getFromLocation(it.latitude, it.longitude, 1)
+                    val geocoder = Geocoder(context, Locale.getDefault())
+                    geocoder.getFromLocation(it.latitude, it.longitude, 1)
                         ?.firstOrNull()?.locality
-                        ?.let(viewModel::loadNearbyListings)
-                }.onFailure { e -> Log.e("HomeScreen", "Geocoder error", e) }
+                        ?.let { city -> viewModel.loadNearbyListings(city) }
+                }.onFailure { error ->
+                    Log.e("HomeScreen", "Geocoder error", error)
+                }
             }
         }
-        .addOnFailureListener { e -> Log.e("HomeScreen", "Location fetch failed", e) }
+        .addOnFailureListener { error ->
+            Log.e("HomeScreen", "Location fetch failed", error)
+        }
 }

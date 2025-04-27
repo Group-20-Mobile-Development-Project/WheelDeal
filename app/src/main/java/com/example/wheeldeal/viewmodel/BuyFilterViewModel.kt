@@ -1,4 +1,4 @@
-// app/src/main/java/com/example/wheeldeal/viewmodel/BuyFilterViewModel.kt
+// BuyFilterViewModel.kt
 package com.example.wheeldeal.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -15,14 +15,16 @@ data class FilterState(
     val fuelType: String = "",
     val year: String = "",
     val budget: Float = 1_000_000f,
+    val sortType: String = "default", // "default", "price_asc", "price_desc"
 
-    // “Applied” copies of each filter
+    // "Applied" copies of each filter
     val appliedBrand: String = "",
     val appliedCategory: String = "",
     val appliedTransmission: String = "",
     val appliedFuelType: String = "",
     val appliedYear: String = "",
-    val appliedBudget: Float = 1_000_000f
+    val appliedBudget: Float = 1_000_000f,
+    val appliedSortType: String = "default"
 )
 
 class BuyFilterViewModel : ViewModel() {
@@ -38,7 +40,6 @@ class BuyFilterViewModel : ViewModel() {
         _filters.update { it.copy(brand = value) }
     }
 
-    // ← now takes a String, not Float
     fun updateCategory(value: String) {
         _filters.update { it.copy(category = value) }
     }
@@ -59,6 +60,10 @@ class BuyFilterViewModel : ViewModel() {
         _filters.update { it.copy(budget = value) }
     }
 
+    fun updateSort(sortType: String) {
+        _filters.update { it.copy(sortType = sortType) }
+    }
+
     fun resetFilters() {
         _filters.update {
             it.copy(
@@ -68,12 +73,14 @@ class BuyFilterViewModel : ViewModel() {
                 fuelType = "",
                 year = "",
                 budget = 50_000f,
+                sortType = "default",
                 appliedBrand = "",
                 appliedCategory = "",
                 appliedTransmission = "",
                 appliedFuelType = "",
                 appliedYear = "",
-                appliedBudget = 50_000f
+                appliedBudget = 50_000f,
+                appliedSortType = "default"
             )
         }
     }
@@ -86,12 +93,12 @@ class BuyFilterViewModel : ViewModel() {
                 appliedTransmission = it.transmission,
                 appliedFuelType = it.fuelType,
                 appliedYear = it.year,
-                appliedBudget = it.budget
+                appliedBudget = it.budget,
+                appliedSortType = it.sortType
             )
         }
     }
 
-    /** Convenience to update & apply in one shot */
     fun updateAllFilters(
         brand: String,
         category: String,
@@ -120,7 +127,7 @@ class BuyFilterViewModel : ViewModel() {
 
     fun filterListings(listings: List<CarListing>): List<CarListing> {
         val f = _filters.value
-        return listings.filter {
+        val filtered = listings.filter {
             (f.appliedBrand.isBlank() || it.brand.equals(f.appliedBrand, ignoreCase = true)) &&
                     (f.appliedCategory.isBlank() || it.category == f.appliedCategory) &&
                     (f.appliedTransmission.isBlank() || it.transmission == f.appliedTransmission) &&
@@ -128,6 +135,11 @@ class BuyFilterViewModel : ViewModel() {
                     (f.appliedYear.isBlank() || it.year.toString() == f.appliedYear) &&
                     it.price <= f.appliedBudget
         }
+
+        return when (f.appliedSortType) {
+            "price_asc" -> filtered.sortedBy { it.price }
+            "price_desc" -> filtered.sortedByDescending { it.price }
+            else -> filtered
+        }
     }
 }
-

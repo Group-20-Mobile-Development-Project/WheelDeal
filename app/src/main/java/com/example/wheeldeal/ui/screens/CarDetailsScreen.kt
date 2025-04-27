@@ -222,7 +222,7 @@ fun CarDetailsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "$${"%,.0f".format(listing.price)}",
+                                text = "€${"%,.0f".format(listing.price)}",
                                 style = MaterialTheme.typography.headlineLarge,
                                 color = FontIconColor
                             )
