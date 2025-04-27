@@ -1,7 +1,6 @@
 package com.example.wheeldeal.ui.screens
 
 import android.content.Intent
-import android.util.Log
 import android.widget.Toast
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -23,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -55,6 +55,7 @@ fun ProfileScreen(
     val showFeedbackDialog = remember { mutableStateOf(false) }
     val showContactUsDialog = remember { mutableStateOf(false) }
     val showEditProfileDialog = remember { mutableStateOf(false) }
+    val showChangePasswordDialog = remember { mutableStateOf(false) }
 
     if (user == null) {
         Box(
@@ -100,13 +101,18 @@ fun ProfileScreen(
                 color = Color(0xFF003049)
             )
 
-            Spacer(modifier = Modifier.height(85.dp))
+            Spacer(modifier = Modifier.height(35.dp))
 
             InfoCard(text = user.email, icon = Icons.Default.Email)
             Spacer(modifier = Modifier.height(16.dp))
 
             InfoCard(text = "Edit Profile", icon = Icons.Default.Edit) {
                 showEditProfileDialog.value = true
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            InfoCard(text = "Change Password", icon = Icons.Default.Lock) {
+                showChangePasswordDialog.value = true
             }
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -129,16 +135,140 @@ fun ProfileScreen(
                 showContactUsDialog.value = true
             }
 
-            if (showEditProfileDialog.value) {
-                EditProfileDialog(
-                    user = user,
-                    onDismiss = { showEditProfileDialog.value = false },
-                    onSave = { firstName, lastName ->
-                        viewModel.updateUserData(firstName, lastName)
-                    }
+            // ─── Change Password Dialog ──────────────────────────────────────────
+            if (showChangePasswordDialog.value) {
+                var oldPw by remember { mutableStateOf("") }
+                var newPw by remember { mutableStateOf("") }
+                var confirmPw by remember { mutableStateOf("") }
+                var error by remember { mutableStateOf<String?>(null) }
+
+                AlertDialog(
+                    onDismissRequest = { showChangePasswordDialog.value = false },
+                    title = { Text("Change Password", fontWeight = FontWeight.Bold) },
+                    text = {
+                        Column {
+                            if (error != null) {
+                                Text(error!!, color = MaterialTheme.colorScheme.error)
+                                Spacer(Modifier.height(8.dp))
+                            }
+                            OutlinedTextField(
+                                value = oldPw,
+                                onValueChange = { oldPw = it },
+                                label = { Text("Current Password") },
+                                visualTransformation = PasswordVisualTransformation(),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = newPw,
+                                onValueChange = { newPw = it },
+                                label = { Text("New Password (≥6 chars)") },
+                                visualTransformation = PasswordVisualTransformation(),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = confirmPw,
+                                onValueChange = { confirmPw = it },
+                                label = { Text("Confirm New Password") },
+                                visualTransformation = PasswordVisualTransformation(),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            error = when {
+                                oldPw.isBlank() || newPw.isBlank() || confirmPw.isBlank() ->
+                                    "All fields are required"
+                                newPw.length < 6 ->
+                                    "New password must be at least 6 characters"
+                                newPw != confirmPw ->
+                                    "Passwords do not match"
+                                else -> null
+                            }
+                            if (error == null) {
+                                viewModel.changePassword(oldPw, newPw)
+                                Toast.makeText(context, "Password changed successfully", Toast.LENGTH_SHORT).show()
+                                showChangePasswordDialog.value = false
+                            }
+                        }) {
+                            Text("Submit")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showChangePasswordDialog.value = false }) {
+                            Text("Cancel")
+                        }
+                    },
+                    containerColor = Color.White,
+                    shape = RoundedCornerShape(16.dp)
                 )
             }
 
+            // ─── Edit Profile Dialog ─────────────────────────────────────────────
+            if (showEditProfileDialog.value) {
+                var firstName by remember { mutableStateOf(user.firstName) }
+                var lastName  by remember { mutableStateOf(user.lastName) }
+                var errorMsg  by remember { mutableStateOf<String?>(null) }
+
+                AlertDialog(
+                    onDismissRequest = { showEditProfileDialog.value = false },
+                    title = {
+                        Text(
+                            "Edit Profile",
+                            style = AppTypography.headlineLarge.copy(fontSize = 20.sp),
+                            color = Color(0xFF003049)
+                        )
+                    },
+                    text = {
+                        Column {
+                            if (errorMsg != null) {
+                                Text(errorMsg!!, color = MaterialTheme.colorScheme.error)
+                                Spacer(Modifier.height(8.dp))
+                            }
+                            OutlinedTextField(
+                                value = firstName,
+                                onValueChange = { firstName = it },
+                                label = { Text("First Name") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = lastName,
+                                onValueChange = { lastName = it },
+                                label = { Text("Last Name") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            errorMsg = when {
+                                firstName.isBlank() || lastName.isBlank() ->
+                                    "Name fields cannot be empty"
+                                else -> null
+                            }
+                            if (errorMsg == null) {
+                                viewModel.updateUserData(firstName, lastName)
+                                Toast.makeText(context, "Profile updated", Toast.LENGTH_SHORT).show()
+                                showEditProfileDialog.value = false
+                            }
+                        }) {
+                            Text("Save", color = FontIconColor, fontWeight = FontWeight.Bold)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showEditProfileDialog.value = false }) {
+                            Text("Cancel", color = Color.Gray)
+                        }
+                    },
+                    containerColor = Color.White,
+                    shape = RoundedCornerShape(16.dp)
+                )
+            }
+
+            // ─── Logout Dialog ────────────────────────────────────────────────────
             if (showLogoutDialog.value) {
                 AlertDialog(
                     onDismissRequest = { showLogoutDialog.value = false },
@@ -177,6 +307,7 @@ fun ProfileScreen(
                 )
             }
 
+            // ─── Delete Account Dialog ────────────────────────────────────────────
             if (showDeleteDialog.value) {
                 AlertDialog(
                     onDismissRequest = { showDeleteDialog.value = false },
@@ -185,14 +316,19 @@ fun ProfileScreen(
                             showDeleteDialog.value = false
                             scope.launch {
                                 firestore.collection("users").document(uid!!).delete()
-                                FirebaseAuth.getInstance().currentUser?.delete()
+                                FirebaseAuth.getInstance().currentUser
+                                    ?.delete()
                                     ?.addOnSuccessListener {
                                         viewModel.logout()
                                         Toast.makeText(context, "Account deleted", Toast.LENGTH_SHORT).show()
                                         onBackToMain()
                                     }
                                     ?.addOnFailureListener {
-                                        Toast.makeText(context, "Failed to delete: ${it.message}", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "Failed to delete: ${it.message}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                             }
                         }) {
@@ -223,32 +359,14 @@ fun ProfileScreen(
                 )
             }
 
+            // ─── Feedback Dialog ──────────────────────────────────────────────────
             if (showFeedbackDialog.value) {
-                AlertDialog(
-                    onDismissRequest = { showFeedbackDialog.value = false },
-                    confirmButton = {
-                        TextButton(onClick = { showFeedbackDialog.value = false }) {
-                            Text("Close", color = Color.Gray)
-                        }
-                    },
-                    title = {
-                        Text(
-                            "Send Feedback",
-                            style = AppTypography.headlineLarge.copy(fontSize = 20.sp),
-                            color = Color(0xFF003049)
-                        )
-                    },
-                    text = {
-                        FeedbackDialogContent(onSubmit = {
-                            showFeedbackDialog.value = false
-                            Toast.makeText(context, "Thank you for your feedback!", Toast.LENGTH_SHORT).show()
-                        })
-                    },
-                    containerColor = Color.White,
-                    shape = RoundedCornerShape(16.dp)
-                )
+                FeedbackDialogContent {
+                    showFeedbackDialog.value = false
+                }
             }
 
+            // ─── Contact Us Dialog ────────────────────────────────────────────────
             if (showContactUsDialog.value) {
                 AlertDialog(
                     onDismissRequest = { showContactUsDialog.value = false },
@@ -288,7 +406,6 @@ fun ProfileScreen(
                                     context.startActivity(intent)
                                 }
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
                         }
                     },
                     containerColor = Color.White,
@@ -354,7 +471,10 @@ fun FeedbackDialogContent(onSubmit: () -> Unit) {
             onClick = {
                 if (feedbackText.isNotBlank()) {
                     val currentTime = System.currentTimeMillis()
-                    val formattedTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(currentTime)
+                    val formattedTime = SimpleDateFormat(
+                        "yyyy-MM-dd HH:mm:ss",
+                        Locale.getDefault()
+                    ).format(currentTime)
 
                     val feedback = hashMapOf(
                         "message" to feedbackText,
@@ -363,12 +483,20 @@ fun FeedbackDialogContent(onSubmit: () -> Unit) {
                     firestore.collection("feedback")
                         .add(feedback)
                         .addOnSuccessListener {
-                            Toast.makeText(context, "Feedback submitted successfully!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "Feedback submitted successfully!",
+                                Toast.LENGTH_SHORT
+                            ).show()
                             feedbackText = ""
                             onSubmit()
                         }
                         .addOnFailureListener { e ->
-                            Toast.makeText(context, "Failed to submit feedback: ${e.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "Failed to submit feedback: ${e.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                 } else {
                     Toast.makeText(context, "Feedback cannot be empty", Toast.LENGTH_SHORT).show()
@@ -388,8 +516,9 @@ fun EditProfileDialog(
     onSave: (String, String) -> Unit
 ) {
     var firstName by remember { mutableStateOf(user.firstName) }
-    var lastName by remember { mutableStateOf(user.lastName) }
+    var lastName  by remember { mutableStateOf(user.lastName) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -406,7 +535,6 @@ fun EditProfileDialog(
                     Text(errorMessage!!, color = MaterialTheme.colorScheme.error)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
-
                 OutlinedTextField(
                     value = firstName,
                     onValueChange = { firstName = it },
@@ -420,20 +548,20 @@ fun EditProfileDialog(
                     label = { Text("Last Name") },
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(8.dp))
             }
         },
         confirmButton = {
             TextButton(
                 onClick = {
-                    when {
-                        firstName.isBlank() || lastName.isBlank() -> {
-                            errorMessage = "Name fields cannot be empty"
-                        }
-                        else -> {
-                            onSave(firstName, lastName)
-                            onDismiss()
-                        }
+                    errorMessage = when {
+                        firstName.isBlank() || lastName.isBlank() ->
+                            "Name fields cannot be empty"
+                        else -> null
+                    }
+                    if (errorMessage == null) {
+                        onSave(firstName, lastName)
+                        Toast.makeText(context, "Profile updated", Toast.LENGTH_SHORT).show()
+                        onDismiss()
                     }
                 }
             ) {

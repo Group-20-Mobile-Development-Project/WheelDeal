@@ -77,6 +77,20 @@ class AuthViewModel(private val repository: AuthRepository = AuthRepository()) :
         }
     }
 
+    fun changePassword(currentPw: String, newPw: String) {
+        _authState.value = AuthState.Loading
+        viewModelScope.launch {
+            repository.changePassword(currentPw, newPw)
+                .onSuccess {
+                    _authState.value = AuthState.Success
+                    // Optionally: Toast or auto-logout
+                }
+                .onFailure {
+                    _authState.value = AuthState.Error(it.message ?: "Unknown error")
+                }
+        }
+    }
+
     fun logout() {
         repository.logout()
         _userData.value = null

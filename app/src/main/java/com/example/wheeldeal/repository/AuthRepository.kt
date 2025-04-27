@@ -1,5 +1,6 @@
 package com.example.wheeldeal.repository
 
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.tasks.await
@@ -30,4 +31,20 @@ class AuthRepository(
     fun logout() {
         auth.signOut()
     }
+
+    suspend fun changePassword(currentPw: String, newPw: String) = runCatching {
+        val user = auth.currentUser
+            ?: throw Exception("Not logged in")
+        val email = user.email
+            ?: throw Exception("No email on account")
+
+        // Reauthenticate
+        val credential = EmailAuthProvider.getCredential(email, currentPw)
+        user.reauthenticateAndRetrieveData(credential).await()
+
+        // Update password
+        user.updatePassword(newPw).await()
+    }
+
+
 }
