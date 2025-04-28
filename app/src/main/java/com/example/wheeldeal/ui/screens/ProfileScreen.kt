@@ -361,9 +361,71 @@ fun ProfileScreen(
 
             // ─── Feedback Dialog ──────────────────────────────────────────────────
             if (showFeedbackDialog.value) {
-                FeedbackDialogContent {
-                    showFeedbackDialog.value = false
-                }
+                var feedbackText by remember { mutableStateOf("") }
+                val firestore = FirebaseFirestore.getInstance()
+
+                AlertDialog(
+                    onDismissRequest = { showFeedbackDialog.value = false },
+                    title = {
+                        Text(
+                            "Leave a Message",
+                            style = AppTypography.headlineLarge.copy(fontSize = 20.sp),
+                            color = Color(0xFF003049)
+                        )
+                    },
+                    text = {
+                        Column {
+                            OutlinedTextField(
+                                value = feedbackText,
+                                onValueChange = { feedbackText = it },
+                                label = { Text("Your message") },
+                                placeholder = { Text("Type your feedback...") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(120.dp),
+                                singleLine = false,
+                                maxLines = 5
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                if (feedbackText.isNotBlank()) {
+                                    val feedback = hashMapOf(
+                                        "message" to feedbackText,
+                                        "timestamp" to System.currentTimeMillis(),
+                                        "userId" to uid
+                                    )
+                                    firestore.collection("feedback")
+                                        .add(feedback)
+                                        .addOnSuccessListener {
+                                            Toast.makeText(context, "Message sent!", Toast.LENGTH_SHORT).show()
+                                            showFeedbackDialog.value = false
+                                        }
+                                        .addOnFailureListener { e ->
+                                            Toast.makeText(
+                                                context,
+                                                "Error: ${e.message}",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                } else {
+                                    Toast.makeText(context, "Please enter a message", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        ) {
+                            Text("Send", color = FontIconColor, fontWeight = FontWeight.Bold)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showFeedbackDialog.value = false }) {
+                            Text("Cancel", color = Color.Gray)
+                        }
+                    },
+                    containerColor = Color.White,
+                    shape = RoundedCornerShape(16.dp)
+                )
             }
 
             // ─── Contact Us Dialog ────────────────────────────────────────────────
