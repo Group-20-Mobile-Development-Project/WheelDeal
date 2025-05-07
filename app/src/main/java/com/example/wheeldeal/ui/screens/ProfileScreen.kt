@@ -36,13 +36,15 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
+import com.example.wheeldeal.viewmodel.FavoritesViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
 fun ProfileScreen(
     onBackToMain: () -> Unit,
-    viewModel: AuthViewModel = viewModel()
+    viewModel: AuthViewModel = viewModel(),
+    favoritesViewModel: FavoritesViewModel
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -277,6 +279,7 @@ fun ProfileScreen(
                             showLogoutDialog.value = false
                             FirebaseAuth.getInstance().signOut()
                             viewModel.logout()
+                            favoritesViewModel.clearFavorites()
                             Toast.makeText(context, "Logged out", Toast.LENGTH_SHORT).show()
                             onBackToMain()
                         }) {
