@@ -28,11 +28,13 @@ import com.example.wheeldeal.ui.theme.PrimaryColor
 import com.example.wheeldeal.ui.theme.WhiteColor
 import com.example.wheeldeal.viewmodel.AuthState
 import com.example.wheeldeal.viewmodel.AuthViewModel
+import com.example.wheeldeal.viewmodel.FavoritesViewModel
 
 @Composable
 fun AccountScreen(
     onLoginSuccess: () -> Unit,
-    viewModel: AuthViewModel = viewModel()
+    viewModel: AuthViewModel = viewModel(),
+    favoritesViewModel: FavoritesViewModel
 ) {
     val authState by viewModel.authState.collectAsState()
     val focusManager = LocalFocusManager.current
@@ -55,6 +57,7 @@ fun AccountScreen(
 
     if (authState is AuthState.Success) {
         LaunchedEffect(Unit) {
+            favoritesViewModel.loadFavorites()
             onLoginSuccess()
             viewModel.resetState()
         }

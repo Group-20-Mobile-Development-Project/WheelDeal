@@ -34,6 +34,7 @@ import kotlinx.coroutines.tasks.await
 import com.example.wheeldeal.viewmodel.ChatViewModel
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +48,15 @@ fun ChatScreen(
     val currentUser = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
     var draft by remember { mutableStateOf(TextFieldValue()) }
     val messages by chatViewModel.messages.collectAsState()
+    val listState = rememberLazyListState()
 
+    // 2) whenever the message list size changes, scroll to the newest
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            // with reverseLayout = true, the newest message lives at index 0
+            listState.animateScrollToItem(0)
+        }
+    }
 
     LaunchedEffect(chatId) {
         if (chatId.isNotBlank()) chatViewModel.listenToMessages(chatId)
@@ -120,10 +129,11 @@ fun ChatScreen(
 
         // Message list
         LazyColumn(
-            Modifier
+            modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
+            state = listState,
             reverseLayout = true,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {

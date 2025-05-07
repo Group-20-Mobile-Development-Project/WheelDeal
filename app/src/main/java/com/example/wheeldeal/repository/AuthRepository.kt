@@ -38,7 +38,7 @@ class AuthRepository(
         val email = user.email
             ?: throw Exception("No email on account")
 
-        // Reauthenticate
+        // Re authenticate
         val credential = EmailAuthProvider.getCredential(email, currentPw)
         user.reauthenticateAndRetrieveData(credential).await()
 

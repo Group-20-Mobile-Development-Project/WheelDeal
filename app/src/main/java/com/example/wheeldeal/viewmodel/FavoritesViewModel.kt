@@ -42,6 +42,11 @@ class FavoritesViewModel : ViewModel() {
         }
     }
 
+    // add this
+    fun clearFavorites() {
+        _favoriteIds.value = emptyList()
+    }
+
     fun isFavorite(listingId: String): Boolean {
         return _favoriteIds.value.contains(listingId)
     }

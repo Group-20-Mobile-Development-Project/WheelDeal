@@ -12,6 +12,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.wheeldeal.viewmodel.FavoritesViewModel
 import com.example.wheeldeal.model.CarListing
 import com.example.wheeldeal.ui.components.*
 import com.example.wheeldeal.ui.navigation.Screen
@@ -23,7 +24,8 @@ import android.net.Uri
 @Composable
 fun MainScreen(
     viewModel: AuthViewModel = viewModel(),
-    navController: NavHostController
+    navController: NavHostController,
+    favoritesViewModel: FavoritesViewModel
 ) {
     val userData by viewModel.userData.collectAsState()
     val innerNav = rememberNavController()
@@ -40,6 +42,7 @@ fun MainScreen(
     val notificationViewModel: NotificationViewModel = viewModel()
     val listingViewModel: ListingViewModel     = viewModel()
     val favoritesViewModel: FavoritesViewModel = viewModel()
+
 
 
     Scaffold(
@@ -103,12 +106,15 @@ fun MainScreen(
                                     popUpTo(Screen.Account.route) { inclusive = true }
                                 }
                             },
-                            viewModel = viewModel
+                            viewModel = viewModel,
+                            favoritesViewModel = favoritesViewModel
                         )
                     } else {
                         AccountScreen(
                             viewModel        = viewModel,
+                            favoritesViewModel = favoritesViewModel,
                             onLoginSuccess = {
+                                favoritesViewModel.loadFavorites()
                                 innerNav.navigate(Screen.Account.route) {
                                     popUpTo(Screen.Account.route) { inclusive = true }
                                 }

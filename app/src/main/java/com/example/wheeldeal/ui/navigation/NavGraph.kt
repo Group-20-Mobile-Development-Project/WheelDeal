@@ -12,14 +12,17 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import kotlinx.coroutines.delay
 import com.example.wheeldeal.ui.components.SuccessStatusScreen
-
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.wheeldeal.viewmodel.FavoritesViewModel
 
 
 @Composable
 fun NavGraph(
     navController: NavHostController = rememberNavController(),
     viewModel: AuthViewModel = viewModel()
+
 ) {
+    val favoritesViewModel: FavoritesViewModel = viewModel()
     val auth = FirebaseAuth.getInstance()
     var startDestination by remember { mutableStateOf<String?>(null) }
 
@@ -42,7 +45,7 @@ fun NavGraph(
         }
 
         composable(Screen.Main.route) {
-            MainScreen(viewModel = viewModel, navController = navController)
+            MainScreen(viewModel = viewModel, navController = navController,  favoritesViewModel = favoritesViewModel)
         }
 
         composable(Screen.Profile.route) {
@@ -52,7 +55,8 @@ fun NavGraph(
                         popUpTo(Screen.Profile.route) { inclusive = true }
                     }
                 },
-                viewModel = viewModel
+                viewModel = viewModel,
+                favoritesViewModel = favoritesViewModel
             )
         }
 
