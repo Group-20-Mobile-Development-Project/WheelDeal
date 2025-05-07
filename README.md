@@ -92,16 +92,16 @@
 ---
 ## 🖼️ App Preview
 
-| Landing Page                        | Car Listings                         |
-| ----------------------------------- | ------------------------------------ | 
-| ![Landing](screenshots/landing.png) | ![Listing](screenshots/listings.png) | 
+| Landing Page                        | Home Page                            | Car Listings                  |
+| ----------------------------------- | ------------------------------------ | ----------------------------- |
+| ![Loading_Screen](https://github.com/user-attachments/assets/649003a5-ccb6-4a52-9f65-9443116ff478) | ![homeScreen](https://github.com/user-attachments/assets/1645ec7a-eb19-453e-9d12-28f958883b22) |![carlisitng](https://github.com/user-attachments/assets/31bd7e22-c9d6-40a8-9a95-ddc8a3b1b856) |
 
-
-| Car Details                         | Chat Interface                       |
-| ----------------------------------- | ------------------------------------ | 
-| ![Landing](screenshots/landing.png) | ![Listing](screenshots/listings.png) |
+| Car Details                         | Owner Details                        | Chat Interface                |
+| ----------------------------------- | ------------------------------------ | ----------------------------- |
+| ![cardetails](https://github.com/user-attachments/assets/1d1e4124-0a04-46b4-be20-f1ec7b65c9c3) | ![ownerdetails](https://github.com/user-attachments/assets/df25c76b-4ddd-4c93-8204-6a0e59419ead) | ![ChatSystem](https://github.com/user-attachments/assets/ddeac61a-3b0c-4ffe-8632-231c8f153faf) |
 
 ---
+
 
 ## ✍️ Contributors
 
@@ -127,7 +127,22 @@ View our design flow and components on Figma:
 
 ---
 
-## 📝 License
+## 🙌 Acknowledgements
+
+We gratefully acknowledge the open-source libraries and tools that made this project possible:
+
+| Library / Tool                          | Purpose                                   | License                 |
+| --------------------------------------- | ----------------------------------------- | ----------------------- |
+| **Jetpack Compose**                     | Modern UI framework for Android           | Apache 2.0              |
+| **Firebase (Auth, Firestore, Storage)** | Backend services (Auth, DB, File storage) | Proprietary (Free Tier) |
+| **Coil**                                | Image loading in Compose                  | Apache 2.0              |
+| **Gson**                                | JSON serialization/deserialization        | Apache 2.0              |
+| **Google Maps SDK**                     | Location and map integration              | Google APIs             |
+| **Material3 (Compose)**                 | Material Design components                | Apache 2.0              |
+
+All dependencies used follow either open-source or permissive licenses compatible with educational and non-commercial use.
+
+## 📝 Purpose
 This project is built for educational purposes as part of a **Mobile App Development Course** at OAMK.
 
 ---
