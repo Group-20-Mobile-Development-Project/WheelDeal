@@ -128,9 +128,6 @@ View our design flow and components on Figma:
 ---
 
 ## 📝 License
-
 This project is built for educational purposes as part of a **Mobile App Development Course** at OAMK.
 
 ---
-
-Would you like this exported as a `README.md` file to upload directly to your GitHub repo?
