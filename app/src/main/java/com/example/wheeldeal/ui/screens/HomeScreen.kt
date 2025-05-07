@@ -44,6 +44,7 @@ import com.example.wheeldeal.ui.theme.FontIconColor
 import com.example.wheeldeal.ui.theme.Poppins
 import com.example.wheeldeal.ui.theme.PrimaryColor
 import com.example.wheeldeal.ui.theme.WhiteColor
+import com.example.wheeldeal.viewmodel.FavoritesViewModel
 import com.example.wheeldeal.viewmodel.ListingState
 import com.example.wheeldeal.viewmodel.ListingViewModel
 import com.google.android.gms.location.LocationServices
@@ -54,10 +55,13 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     viewModel: ListingViewModel = viewModel(),
+    favoritesViewModel: FavoritesViewModel = viewModel(),
     innerNav: NavHostController
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+
+    val favIds by favoritesViewModel.favoriteIds.collectAsState()
 
     // State management
     var permissionDenied by remember { mutableStateOf(false) }
@@ -122,7 +126,9 @@ fun HomeScreen(
                 titleFontSize = 24.sp,
                 iconTint = Color(0xFF38AD00),
                 tittleColor = FontIconColor,
-                tittleFont = Poppins
+                tittleFont = Poppins,
+                favIds = favIds,
+                favoritesViewModel = favoritesViewModel
             )
 
             // SUV Section
@@ -135,7 +141,9 @@ fun HomeScreen(
                 titleFontSize = 22.sp,
                 iconTint = Color(0xFF3D5AFE) ,
                 tittleColor = FontIconColor,
-                tittleFont = Poppins
+                tittleFont = Poppins,
+                favIds = favIds,
+                favoritesViewModel = favoritesViewModel
             )
 
             // Sedan Section
@@ -148,7 +156,9 @@ fun HomeScreen(
                 titleFontSize = 22.sp,
                 iconTint = Color(0xFF00BFA5),
                 tittleColor = FontIconColor,
-                tittleFont = Poppins
+                tittleFont = Poppins,
+                favIds = favIds,
+                favoritesViewModel = favoritesViewModel
             )
 
             // Hatchback Section
@@ -161,7 +171,9 @@ fun HomeScreen(
                 titleFontSize = 22.sp,
                 iconTint = Color(0xFFFF6D00) ,
                 tittleColor = FontIconColor,
-                tittleFont = Poppins
+                tittleFont = Poppins,
+                favIds = favIds,
+                favoritesViewModel = favoritesViewModel
             )
 
             Spacer(Modifier.height(32.dp))
@@ -184,7 +196,9 @@ private fun HomeSection(
     titleFontSize: TextUnit = 20.sp,  // Added parameter
     iconTint: Color = MaterialTheme.colorScheme.primary,  // Added parameter
     tittleColor: Color,
-    tittleFont: FontFamily
+    tittleFont: FontFamily,
+    favIds: List<String>,
+    favoritesViewModel: FavoritesViewModel
 ) {
     // Section header
     Row(
@@ -229,7 +243,7 @@ private fun HomeSection(
         }
         // Cars available state
         else -> {
-            CarListRow(cars, innerNav)
+            CarListRow(cars, innerNav, favIds, favoritesViewModel)
         }
     }
 }
@@ -274,7 +288,12 @@ private fun EmptyStateSection() {
  * Displays a horizontal row of car cards with a "See more" button
  */
 @Composable
-private fun CarListRow(cars: List<CarListing>, innerNav: NavHostController) {
+private fun CarListRow(
+    cars: List<CarListing>,
+    innerNav: NavHostController,
+    favIds: List<String>,
+    favoritesViewModel: FavoritesViewModel
+) {
     LazyRow(
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -282,15 +301,14 @@ private fun CarListRow(cars: List<CarListing>, innerNav: NavHostController) {
         items(cars.take(5)) { car ->
             CarCard(
                 listing = car,
-                isFavorite = false,
-                onToggleFavorite = { /* No functionality changes as requested */ },
+                isFavorite = favIds.contains(car.id),
+                onToggleFavorite = { favoritesViewModel.toggleFavorite(car.id) },
                 onClick = {
                     navigateToCarDetails(car, innerNav)
                 },
                 modifier = Modifier.width(250.dp)
             )
         }
-
         // "See more" button
         item {
             SeeMoreButton(innerNav)

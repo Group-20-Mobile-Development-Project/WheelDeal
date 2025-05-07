@@ -87,6 +87,9 @@ fun MainScreen(
                 }
                 // 3) Favorites
                 composable(Screen.Favorites.route) {
+                    LaunchedEffect(Unit) {
+                        favoritesViewModel.loadFavorites()
+                    }
                     FavoritesScreen(
                         navController     = innerNav,
                         listingViewModel  = listingViewModel,
